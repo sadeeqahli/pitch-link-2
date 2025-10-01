@@ -5,8 +5,8 @@ import { ErrorBoundaryWrapper } from './__create/SharedErrorBoundary';
 import './src/__create/polyfills';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
-import { AlertModal } from './polyfills/web/alerts.web';
 import './global.css';
+import { ConvexAuthProvider } from './src/utils/convex';
 
 const GlobalErrorReporter = () => {
   useEffect(() => {
