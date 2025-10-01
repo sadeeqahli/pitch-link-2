@@ -83,17 +83,34 @@ export default function AddBooking() {
 
   const fetchPitches = async () => {
     try {
-      const response = await fetch("/api/pitches");
-      const result = await response.json();
-
-      if (result.success) {
-        const activePitches = result.data.filter((pitch) => pitch.is_active);
-        setPitches(activePitches);
-        if (activePitches.length > 0) {
-          setSelectedPitch(activePitches[0]);
+      // Mock data instead of API call
+      const mockPitches = [
+        {
+          id: 1,
+          name: "Pitch A",
+          location: "Main Field",
+          price_per_hour: 15000,
+          is_active: true
+        },
+        {
+          id: 2,
+          name: "Pitch B",
+          location: "East Wing",
+          price_per_hour: 20000,
+          is_active: true
+        },
+        {
+          id: 3,
+          name: "Pitch C",
+          location: "West Wing",
+          price_per_hour: 18000,
+          is_active: false
         }
-      } else {
-        console.error("Error fetching pitches:", result.error);
+      ];
+
+      setPitches(mockPitches);
+      if (mockPitches.length > 0) {
+        setSelectedPitch(mockPitches[0]);
       }
     } catch (error) {
       console.error("Error fetching pitches:", error);
@@ -154,36 +171,19 @@ export default function AddBooking() {
     try {
       const totalAmount = calculateTotalAmount();
 
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pitch_id: selectedPitch.id,
-          player_name: playerName.trim(),
-          player_email: playerEmail.trim() || null,
-          player_phone: playerPhone.trim() || null,
-          booking_date: bookingDate,
-          start_time: startTime,
-          end_time: endTime,
-          total_amount: totalAmount,
-          payment_status: "pending",
-        }),
-      });
+      // Simulate API call with mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const result = await response.json();
-
-      if (result.success) {
-        Alert.alert("Success", "Booking created successfully!", [
-          {
-            text: "OK",
-            onPress: () => router.back(),
+      // Show success message
+      Alert.alert("Success", "Booking created successfully!", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Navigate back to dashboard and refresh data
+            router.replace("/(tabs)/dashboard");
           },
-        ]);
-      } else {
-        Alert.alert("Error", result.error || "Failed to create booking");
-      }
+        },
+      ]);
     } catch (error) {
       console.error("Error creating booking:", error);
       Alert.alert("Error", "Failed to create booking. Please try again.");

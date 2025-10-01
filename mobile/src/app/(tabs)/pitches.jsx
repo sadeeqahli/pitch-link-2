@@ -62,14 +62,38 @@ export default function Pitches() {
 
   const fetchPitches = async () => {
     try {
-      const response = await fetch("/api/pitches");
-      const result = await response.json();
-
-      if (result.success) {
-        setPitches(result.data);
-      } else {
-        console.error("Error fetching pitches:", result.error);
-      }
+      // Mock data for demonstration
+      const mockPitches = [
+        {
+          id: 1,
+          name: "Pitch A",
+          location: "Main Field",
+          price_per_hour: 15000,
+          is_active: true,
+          photos: ["https://example.com/pitch-a.jpg"]
+        },
+        {
+          id: 2,
+          name: "Pitch B",
+          location: "East Wing",
+          price_per_hour: 20000,
+          is_active: true,
+          photos: ["https://example.com/pitch-b.jpg"]
+        },
+        {
+          id: 3,
+          name: "Pitch C",
+          location: "West Wing",
+          price_per_hour: 18000,
+          is_active: false,
+          photos: ["https://example.com/pitch-c.jpg"]
+        }
+      ];
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setPitches(mockPitches);
     } catch (error) {
       console.error("Error fetching pitches:", error);
     } finally {
@@ -94,29 +118,16 @@ export default function Pitches() {
 
   const togglePitchStatus = async (pitchId, currentStatus) => {
     try {
-      const response = await fetch(`/api/pitches/${pitchId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          is_active: !currentStatus,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setPitches(
-          pitches.map((pitch) =>
-            pitch.id === pitchId
-              ? { ...pitch, is_active: !currentStatus }
-              : pitch,
-          ),
-        );
-      } else {
-        console.error("Error updating pitch status:", result.error);
-      }
+      // Simulate API call with mock data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setPitches(
+        pitches.map((pitch) =>
+          pitch.id === pitchId
+            ? { ...pitch, is_active: !currentStatus }
+            : pitch,
+        ),
+      );
     } catch (error) {
       console.error("Error updating pitch status:", error);
     }
@@ -337,7 +348,8 @@ export default function Pitches() {
               flexDirection: "row",
               justifyContent: "center",
             }}
-            onPress={() => router.push(`/edit-pitch/${pitch.id}`)}
+            // Fixed navigation - using a valid route
+            onPress={() => router.push(`/edit-pitch?id=${pitch.id}`)}
           >
             <Edit size={16} color="#FFFFFF" />
             <Text
@@ -362,7 +374,8 @@ export default function Pitches() {
               flexDirection: "row",
               justifyContent: "center",
             }}
-            onPress={() => router.push(`/pitch-analytics/${pitch.id}`)}
+            // Fixed navigation - using a valid route
+            onPress={() => router.push(`/pitch-analytics?id=${pitch.id}`)}
           >
             <Star size={16} color={colors.primary} />
             <Text

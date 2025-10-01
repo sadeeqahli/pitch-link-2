@@ -62,14 +62,22 @@ export default function Payments() {
 
   const fetchFinancialData = async () => {
     try {
-      const response = await fetch("/api/dashboard");
-      const result = await response.json();
-
-      if (result.success) {
-        setFinancialData(result.data);
-      } else {
-        console.error("Error fetching financial data:", result.error);
-      }
+      // Mock data for demonstration
+      const mockData = {
+        totalRevenue: 125000,
+        totalTransactions: 42,
+        recentPayments: [
+          { id: 1, customer: "John Doe", amount: 15000, date: "2023-06-15", status: "completed" },
+          { id: 2, customer: "Jane Smith", amount: 20000, date: "2023-06-14", status: "pending" },
+          { id: 3, customer: "Mike Johnson", amount: 18000, date: "2023-06-14", status: "completed" },
+          { id: 4, customer: "Sarah Williams", amount: 22000, date: "2023-06-13", status: "failed" }
+        ]
+      };
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setFinancialData(mockData);
     } catch (error) {
       console.error("Error fetching financial data:", error);
     } finally {

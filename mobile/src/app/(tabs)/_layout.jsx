@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Calendar, Building, DollarSign, HelpCircle } from "lucide-react-native";
+import { Home, Calendar, Building, DollarSign, User as UserIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "react-native";
 
@@ -61,10 +61,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="support"
+        name="profile"
         options={{
-          title: "Support",
-          tabBarIcon: ({ color }) => <HelpCircle size={24} color={color} />,
+          title: "Profile",
+          tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
         }}
       />
     </Tabs>

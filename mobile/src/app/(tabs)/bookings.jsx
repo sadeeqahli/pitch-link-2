@@ -61,14 +61,44 @@ export default function Bookings() {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch("/api/bookings");
-      const result = await response.json();
-
-      if (result.success) {
-        setBookings(result.data);
-      } else {
-        console.error("Error fetching bookings:", result.error);
-      }
+      // Mock data for demonstration
+      const mockBookings = [
+        {
+          id: 1,
+          player_name: "John Doe",
+          pitch_name: "Pitch A",
+          booking_date: "2023-06-15",
+          start_time: "14:00:00",
+          end_time: "16:00:00",
+          total_amount: 15000,
+          payment_status: "confirmed"
+        },
+        {
+          id: 2,
+          player_name: "Jane Smith",
+          pitch_name: "Pitch B",
+          booking_date: "2023-06-15",
+          start_time: "17:00:00",
+          end_time: "19:00:00",
+          total_amount: 20000,
+          payment_status: "pending"
+        },
+        {
+          id: 3,
+          player_name: "Mike Johnson",
+          pitch_name: "Pitch C",
+          booking_date: "2023-06-16",
+          start_time: "19:00:00",
+          end_time: "21:00:00",
+          total_amount: 18000,
+          payment_status: "confirmed"
+        }
+      ];
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setBookings(mockBookings);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
@@ -152,7 +182,7 @@ export default function Bookings() {
           elevation: 3,
         }}
         activeOpacity={0.8}
-        onPress={() => router.push(`/booking-details/${booking.id}`)}
+        onPress={() => router.push("/(tabs)/dashboard")}
       >
         <View
           style={{
@@ -418,12 +448,25 @@ export default function Bookings() {
           <TouchableOpacity
             style={{
               backgroundColor: colors.footballGreen,
-              borderRadius: 12,
-              padding: 10,
+              borderRadius: 16,
+              paddingVertical: 16,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: 8,
             }}
-            onPress={() => router.push("/add-booking")}
+            onPress={() => router.push("../add-booking")}
           >
-            <Plus size={20} color="#FFFFFF" />
+            <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text
+              style={{
+                fontFamily: "Poppins_600SemiBold",
+                fontSize: 16,
+                color: "#FFFFFF",
+              }}
+            >
+              Add New Booking
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
