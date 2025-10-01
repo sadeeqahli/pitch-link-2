@@ -7,6 +7,7 @@ import {
   useColorScheme,
   RefreshControl,
   Switch,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,6 +31,8 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export default function Pitches() {
   const insets = useSafeAreaInsets();
@@ -37,9 +40,12 @@ export default function Pitches() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
-  const [pitches, setPitches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Convex queries and mutations
+  const pitches = useQuery(api.pitches.getPitches);
+  const [updatePitch] = useMutation(api.pitches.updatePitch);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -60,55 +66,16 @@ export default function Pitches() {
     footballDark: "#059142",
   };
 
-  const fetchPitches = async () => {
-    try {
-      // Mock data for demonstration
-      const mockPitches = [
-        {
-          id: 1,
-          name: "Pitch A",
-          location: "Main Field",
-          price_per_hour: 15000,
-          is_active: true,
-          photos: ["https://example.com/pitch-a.jpg"]
-        },
-        {
-          id: 2,
-          name: "Pitch B",
-          location: "East Wing",
-          price_per_hour: 20000,
-          is_active: true,
-          photos: ["https://example.com/pitch-b.jpg"]
-        },
-        {
-          id: 3,
-          name: "Pitch C",
-          location: "West Wing",
-          price_per_hour: 18000,
-          is_active: false,
-          photos: ["https://example.com/pitch-c.jpg"]
-        }
-      ];
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setPitches(mockPitches);
-    } catch (error) {
-      console.error("Error fetching pitches:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPitches();
-  }, []);
+    if (pitches !== undefined) {
+      setLoading(false);
+    }
+  }, [pitches]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchPitches();
+    // Refresh is handled automatically by Convex
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleScroll = (event) => {
@@ -118,18 +85,13 @@ export default function Pitches() {
 
   const togglePitchStatus = async (pitchId, currentStatus) => {
     try {
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setPitches(
-        pitches.map((pitch) =>
-          pitch.id === pitchId
-            ? { ...pitch, is_active: !currentStatus }
-            : pitch,
-        ),
-      );
+      await updatePitch({
+        pitchId,
+        isActive: !currentStatus,
+      });
     } catch (error) {
       console.error("Error updating pitch status:", error);
+      Alert.alert("Error", "Failed to update pitch status. Please try again.");
     }
   };
 
@@ -219,7 +181,7 @@ export default function Pitches() {
             </View>
             <Switch
               value={pitch.is_active}
-              onValueChange={() => togglePitchStatus(pitch.id, pitch.is_active)}
+              onValueChange={() => togglePitchStatus(pitch._id, pitch.is_active)}
               trackColor={{
                 false: colors.lightGray,
                 true: colors.footballGreen,
@@ -348,8 +310,7 @@ export default function Pitches() {
               flexDirection: "row",
               justifyContent: "center",
             }}
-            // Fixed navigation - using a valid route
-            onPress={() => router.push(`/edit-pitch?id=${pitch.id}`)}
+            onPress={() => router.push(`/edit-pitch?id=${pitch._id}`)}
           >
             <Edit size={16} color="#FFFFFF" />
             <Text
@@ -374,8 +335,7 @@ export default function Pitches() {
               flexDirection: "row",
               justifyContent: "center",
             }}
-            // Fixed navigation - using a valid route
-            onPress={() => router.push(`/pitch-analytics?id=${pitch.id}`)}
+            onPress={() => router.push(`/pitch-analytics?id=${pitch._id}`)}
           >
             <Star size={16} color={colors.primary} />
             <Text
@@ -498,7 +458,7 @@ export default function Pitches() {
       >
         {/* Pitches list */}
         <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
-          {pitches.length > 0 ? (
+          {pitches?.length > 0 ? (
             <>
               {/* Summary stats */}
               <View style={{ flexDirection: "row", marginBottom: 24, gap: 12 }}>
@@ -567,7 +527,7 @@ export default function Pitches() {
 
               {/* Pitches */}
               {pitches.map((pitch) => (
-                <PitchCard key={pitch.id} pitch={pitch} />
+                <PitchCard key={pitch._id} pitch={pitch} />
               ))}
             </>
           ) : (

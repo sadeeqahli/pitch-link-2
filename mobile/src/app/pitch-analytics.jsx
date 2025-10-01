@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -24,7 +24,8 @@ import {
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
 import { LineChart, BarChart } from "react-native-chart-kit";
-import { format, subDays, subWeeks, subMonths, subYears, isSameDay, isSameWeek, isSameMonth, isSameYear, startOfWeek, startOfMonth, startOfYear } from "date-fns";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 const { width } = Dimensions.get("window");
 
@@ -36,8 +37,12 @@ export default function PitchAnalytics() {
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Convex queries
+  const analyticsData = useQuery(api.analytics.getAnalytics, { 
+    pitchId: id,
+    period: selectedPeriod 
+  });
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -58,192 +63,6 @@ export default function PitchAnalytics() {
     footballDark: "#059142",
     inputBorder: isDark ? "#374151" : "#D1D5DB",
     inputFocus: "#00CC66",
-  };
-
-  // Fetch bookings data
-  useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  const fetchBookings = async () => {
-    try {
-      // Mock data for demonstration - in a real app, this would come from an API
-      const mockBookings = [
-        { id: 1, player_name: "John Doe", pitch_name: "Pitch A", booking_date: "2023-06-10", start_time: "14:00:00", end_time: "16:00:00", total_amount: 15000, payment_status: "confirmed" },
-        { id: 2, player_name: "Jane Smith", pitch_name: "Pitch B", booking_date: "2023-06-12", start_time: "17:00:00", end_time: "19:00:00", total_amount: 20000, payment_status: "pending" },
-        { id: 3, player_name: "Mike Johnson", pitch_name: "Pitch C", booking_date: "2023-06-15", start_time: "19:00:00", end_time: "21:00:00", total_amount: 18000, payment_status: "confirmed" },
-        { id: 4, player_name: "Sarah Wilson", pitch_name: "Pitch A", booking_date: "2023-06-18", start_time: "10:00:00", end_time: "12:00:00", total_amount: 15000, payment_status: "confirmed" },
-        { id: 5, player_name: "Robert Brown", pitch_name: "Pitch B", booking_date: "2023-06-20", start_time: "15:00:00", end_time: "17:00:00", total_amount: 20000, payment_status: "confirmed" },
-        { id: 6, player_name: "Emily Davis", pitch_name: "Pitch C", booking_date: "2023-06-22", start_time: "18:00:00", end_time: "20:00:00", total_amount: 18000, payment_status: "pending" },
-        { id: 7, player_name: "David Miller", pitch_name: "Pitch A", booking_date: "2023-06-25", start_time: "13:00:00", end_time: "15:00:00", total_amount: 15000, payment_status: "confirmed" },
-        { id: 8, player_name: "Lisa Taylor", pitch_name: "Pitch B", booking_date: "2023-06-28", start_time: "16:00:00", end_time: "18:00:00", total_amount: 20000, payment_status: "confirmed" },
-      ];
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setBookings(mockBookings);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter bookings based on selected period
-  const filterBookingsByPeriod = (period) => {
-    const now = new Date();
-    let startDate;
-    
-    switch (period) {
-      case "day":
-        startDate = subDays(now, 1);
-        break;
-      case "week":
-        startDate = subWeeks(now, 1);
-        break;
-      case "month":
-        startDate = subMonths(now, 1);
-        break;
-      case "year":
-        startDate = subYears(now, 1);
-        break;
-      default:
-        startDate = subWeeks(now, 1);
-    }
-    
-    return bookings.filter(booking => {
-      const bookingDate = new Date(booking.booking_date);
-      return bookingDate >= startDate && bookingDate <= now;
-    });
-  };
-
-  // Generate chart data based on selected period
-  const generateChartData = (period) => {
-    const filteredBookings = filterBookingsByPeriod(period);
-    const now = new Date();
-    let labels = [];
-    let revenueData = [];
-    let bookingsData = [];
-    
-    switch (period) {
-      case "day":
-        // Last 24 hours - show hourly data
-        for (let i = 0; i < 24; i++) {
-          const hour = new Date(now);
-          hour.setHours(now.getHours() - i);
-          labels.unshift(`${hour.getHours()}:00`);
-          
-          const hourlyBookings = filteredBookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return bookingDate.getHours() === hour.getHours();
-          });
-          
-          bookingsData.unshift(hourlyBookings.length);
-          revenueData.unshift(hourlyBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0));
-        }
-        break;
-        
-      case "week":
-        // Last 7 days
-        for (let i = 6; i >= 0; i--) {
-          const date = subDays(now, i);
-          labels.push(format(date, "EEE"));
-          
-          const dailyBookings = filteredBookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return isSameDay(bookingDate, date);
-          });
-          
-          bookingsData.push(dailyBookings.length);
-          revenueData.push(dailyBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0));
-        }
-        break;
-        
-      case "month":
-        // Last 30 days
-        for (let i = 29; i >= 0; i--) {
-          const date = subDays(now, i);
-          labels.push(format(date, "dd"));
-          
-          const dailyBookings = filteredBookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return isSameDay(bookingDate, date);
-          });
-          
-          bookingsData.push(dailyBookings.length);
-          revenueData.push(dailyBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0));
-        }
-        break;
-        
-      case "year":
-        // Last 12 months
-        for (let i = 11; i >= 0; i--) {
-          const date = subMonths(now, i);
-          labels.push(format(date, "MMM"));
-          
-          const monthlyBookings = filteredBookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return isSameMonth(bookingDate, date);
-          });
-          
-          bookingsData.push(monthlyBookings.length);
-          revenueData.push(monthlyBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0));
-        }
-        break;
-        
-      default:
-        // Default to week view
-        for (let i = 6; i >= 0; i--) {
-          const date = subDays(now, i);
-          labels.push(format(date, "EEE"));
-          
-          const dailyBookings = filteredBookings.filter(booking => {
-            const bookingDate = new Date(booking.booking_date);
-            return isSameDay(bookingDate, date);
-          });
-          
-          bookingsData.push(dailyBookings.length);
-          revenueData.push(dailyBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0));
-        }
-    }
-    
-    return { labels, revenueData, bookingsData };
-  };
-
-  // Calculate summary statistics
-  const calculateSummaryStats = () => {
-    const filteredBookings = filterBookingsByPeriod(selectedPeriod);
-    
-    const totalRevenue = filteredBookings.reduce((sum, booking) => sum + (booking.total_amount || 0), 0);
-    const totalBookings = filteredBookings.length;
-    
-    return { totalRevenue, totalBookings };
-  };
-
-  const { totalRevenue, totalBookings } = calculateSummaryStats();
-  const chartData = generateChartData(selectedPeriod);
-
-  const revenueData = {
-    labels: chartData.labels,
-    datasets: [
-      {
-        data: chartData.revenueData,
-        color: (opacity = 1) => `rgba(0, 204, 102, ${opacity})`,
-        strokeWidth: 2,
-      },
-    ],
-  };
-
-  const bookingsData = {
-    labels: chartData.labels,
-    datasets: [
-      {
-        data: chartData.bookingsData,
-        color: (opacity = 1) => `rgba(5, 145, 66, ${opacity})`,
-        strokeWidth: 2,
-      },
-    ],
   };
 
   const chartConfig = {
@@ -268,13 +87,36 @@ export default function PitchAnalytics() {
     setShowHeaderBorder(scrollY > 0);
   };
 
-  if (!fontsLoaded || loading) {
+  if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.white }}>
         <Text>Loading...</Text>
       </View>
     );
   }
+
+  // Prepare chart data
+  const revenueData = {
+    labels: analyticsData?.revenueLabels || [],
+    datasets: [
+      {
+        data: analyticsData?.revenueData || [],
+        color: (opacity = 1) => `rgba(0, 204, 102, ${opacity})`,
+        strokeWidth: 2,
+      },
+    ],
+  };
+
+  const bookingsData = {
+    labels: analyticsData?.bookingsLabels || [],
+    datasets: [
+      {
+        data: analyticsData?.bookingsData || [],
+        color: (opacity = 1) => `rgba(5, 145, 66, ${opacity})`,
+        strokeWidth: 2,
+      },
+    ],
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -400,7 +242,7 @@ export default function PitchAnalytics() {
                   marginTop: 8,
                 }}
               >
-                ₦{totalRevenue.toLocaleString()}
+                ₦{analyticsData?.totalRevenue?.toLocaleString() || "0"}
               </Text>
               <Text
                 style={{
@@ -432,7 +274,7 @@ export default function PitchAnalytics() {
                   marginTop: 8,
                 }}
               >
-                {totalBookings}
+                {analyticsData?.totalBookings || "0"}
               </Text>
               <Text
                 style={{

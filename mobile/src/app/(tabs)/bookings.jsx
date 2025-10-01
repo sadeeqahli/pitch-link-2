@@ -28,6 +28,8 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export default function Bookings() {
   const insets = useSafeAreaInsets();
@@ -35,10 +37,13 @@ export default function Bookings() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
-  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("all");
+
+  // Convex queries
+  const bookings = useQuery(api.bookings.getFilteredBookings, { filter: selectedFilter });
+  const allBookings = useQuery(api.bookings.getBookings);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -59,61 +64,16 @@ export default function Bookings() {
     footballDark: "#059142",
   };
 
-  const fetchBookings = async () => {
-    try {
-      // Mock data for demonstration
-      const mockBookings = [
-        {
-          id: 1,
-          player_name: "John Doe",
-          pitch_name: "Pitch A",
-          booking_date: "2023-06-15",
-          start_time: "14:00:00",
-          end_time: "16:00:00",
-          total_amount: 15000,
-          payment_status: "confirmed"
-        },
-        {
-          id: 2,
-          player_name: "Jane Smith",
-          pitch_name: "Pitch B",
-          booking_date: "2023-06-15",
-          start_time: "17:00:00",
-          end_time: "19:00:00",
-          total_amount: 20000,
-          payment_status: "pending"
-        },
-        {
-          id: 3,
-          player_name: "Mike Johnson",
-          pitch_name: "Pitch C",
-          booking_date: "2023-06-16",
-          start_time: "19:00:00",
-          end_time: "21:00:00",
-          total_amount: 18000,
-          payment_status: "confirmed"
-        }
-      ];
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setBookings(mockBookings);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    fetchBookings();
-  }, []);
+    if (bookings !== undefined) {
+      setLoading(false);
+    }
+  }, [bookings]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchBookings();
+    // Refresh is handled automatically by Convex
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleScroll = (event) => {
@@ -145,24 +105,6 @@ export default function Bookings() {
       default:
         return Clock;
     }
-  };
-
-  const filterBookings = () => {
-    if (selectedFilter === "all") return bookings;
-    if (selectedFilter === "today") {
-      const today = new Date().toISOString().split("T")[0];
-      return bookings.filter((booking) =>
-        booking.booking_date.startsWith(today),
-      );
-    }
-    if (selectedFilter === "upcoming") {
-      const today = new Date().toISOString().split("T")[0];
-      return bookings.filter((booking) => booking.booking_date >= today);
-    }
-    if (selectedFilter === "pending") {
-      return bookings.filter((booking) => booking.payment_status === "pending");
-    }
-    return bookings;
   };
 
   const BookingCard = ({ booking }) => {
@@ -376,16 +318,16 @@ export default function Bookings() {
     );
   }
 
-  const filteredBookings = filterBookings();
-  const todayBookings = bookings.filter((b) =>
+  // Calculate filter counts
+  const todayBookings = allBookings?.filter((b) =>
     b.booking_date.startsWith(new Date().toISOString().split("T")[0]),
-  );
-  const upcomingBookings = bookings.filter(
+  ) || [];
+  const upcomingBookings = allBookings?.filter(
     (b) => b.booking_date >= new Date().toISOString().split("T")[0],
-  );
-  const pendingBookings = bookings.filter(
+  ) || [];
+  const pendingBookings = allBookings?.filter(
     (b) => b.payment_status === "pending",
-  );
+  ) || [];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.lightGray }}>
@@ -495,7 +437,7 @@ export default function Bookings() {
             paddingBottom: 8,
           }}
         >
-          <FilterButton title="All" value="all" count={bookings.length} />
+          <FilterButton title="All" value="all" count={allBookings?.length || 0} />
           <FilterButton
             title="Today"
             value="today"
@@ -515,8 +457,8 @@ export default function Bookings() {
 
         {/* Bookings list */}
         <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
-          {filteredBookings.length > 0 ? (
-            filteredBookings.map((booking) => (
+          {bookings?.length > 0 ? (
+            bookings.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))
           ) : (

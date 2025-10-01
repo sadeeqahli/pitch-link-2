@@ -29,6 +29,8 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -38,9 +40,12 @@ export default function Dashboard() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
-  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Convex queries
+  const dashboardData = useQuery(api.dashboard.getDashboardData);
+  const recentActivity = useQuery(api.bookings.getRecentBookings, { limit: 5 });
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -61,72 +66,16 @@ export default function Dashboard() {
     footballDark: "#059142",
   };
 
-  const fetchDashboardData = async () => {
-    try {
-      // Mock data for demonstration with more realistic data
-      const mockData = {
-        earnings: {
-          today: 45000,
-          weekly: 245000,
-          monthly: 875000
-        },
-        bookings: {
-          pending: 3,
-          upcoming: 8
-        },
-        recentActivity: [
-          { 
-            id: 1, 
-            player_name: "John Doe", 
-            pitch_name: "Pitch A",
-            booking_date: "2023-06-15",
-            start_time: "14:00", 
-            end_time: "16:00",
-            total_amount: 15000,
-            payment_status: "confirmed"
-          },
-          { 
-            id: 2, 
-            player_name: "Jane Smith", 
-            pitch_name: "Pitch B",
-            booking_date: "2023-06-15",
-            start_time: "17:00", 
-            end_time: "19:00",
-            total_amount: 20000,
-            payment_status: "pending"
-          },
-          { 
-            id: 3, 
-            player_name: "Mike Johnson", 
-            pitch_name: "Pitch C",
-            booking_date: "2023-06-16",
-            start_time: "19:00", 
-            end_time: "21:00",
-            total_amount: 18000,
-            payment_status: "confirmed"
-          }
-        ]
-      };
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setDashboardData(mockData);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (dashboardData !== undefined && recentActivity !== undefined) {
+      setLoading(false);
+    }
+  }, [dashboardData, recentActivity]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchDashboardData();
+    // Refresh is handled automatically by Convex
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleScroll = (event) => {
@@ -583,8 +532,8 @@ export default function Dashboard() {
             </TouchableOpacity>
           </View>
 
-          {dashboardData?.recentActivity?.length > 0 ? (
-            dashboardData.recentActivity
+          {recentActivity?.length > 0 ? (
+            recentActivity
               .slice(0, 5)
               .map((booking) => (
                 <RecentActivityItem key={booking.id} booking={booking} />
