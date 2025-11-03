@@ -7,6 +7,7 @@ import {
   Dimensions,
   useColorScheme,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,8 +30,6 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -42,12 +41,69 @@ export default function Dashboard() {
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fontLoadError, setFontLoadError] = useState(false);
 
-  // Convex queries
-  const dashboardData = useQuery(api.dashboard.getDashboardData);
-  const recentActivity = useQuery(api.bookings.getRecentBookings, { limit: 5 });
+  // Mock data to replace Convex queries
+  const dashboardData = {
+    totalBookings: 24,
+    totalRevenue: 1240,
+    activePitches: 3,
+    occupancyRate: 78,
+    earnings: {
+      today: 120000,
+      weekly: 850000,
+      monthly: 3500000
+    },
+    bookings: {
+      pending: 3,
+      upcoming: 7
+    }
+  };
+  
+  const recentActivity = [
+    {
+      id: "1",
+      playerName: "John Doe",
+      pitchName: "Main Field",
+      date: "2023-06-15",
+      time: "14:00 - 16:00",
+      status: "confirmed",
+    },
+    {
+      id: "2",
+      playerName: "Jane Smith",
+      pitchName: "Side Court",
+      date: "2023-06-15",
+      time: "10:00 - 12:00",
+      status: "pending",
+    },
+    {
+      id: "3",
+      playerName: "Mike Johnson",
+      pitchName: "Main Field",
+      date: "2023-06-14",
+      time: "18:00 - 20:00",
+      status: "completed",
+    },
+    {
+      id: "4",
+      playerName: "Sarah Wilson",
+      pitchName: "Training Area",
+      date: "2023-06-14",
+      time: "09:00 - 11:00",
+      status: "confirmed",
+    },
+    {
+      id: "5",
+      playerName: "David Brown",
+      pitchName: "Main Field",
+      date: "2023-06-13",
+      time: "15:00 - 17:00",
+      status: "completed",
+    },
+  ];
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontLoadErrorResult] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
@@ -67,20 +123,127 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (dashboardData !== undefined && recentActivity !== undefined) {
+    // Simulate loading mock data
+    setTimeout(() => {
       setLoading(false);
+    }, 500);
+    
+    // Check for font loading errors
+    if (fontLoadErrorResult) {
+      setFontLoadError(true);
+      console.log("Font loading error:", fontLoadErrorResult);
     }
-  }, [dashboardData, recentActivity]);
+  }, [fontLoadErrorResult]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Refresh is handled automatically by Convex
+    // Simulate refresh
     setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleScroll = (event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowHeaderBorder(scrollY > 0);
+  };
+
+  // Added missing RecentActivityItem component
+  const RecentActivityItem = ({ booking }) => {
+    const getStatusColor = (status) => {
+      switch (status.toLowerCase()) {
+        case 'confirmed':
+          return colors.success;
+        case 'pending':
+          return colors.warning;
+        case 'completed':
+          return colors.secondary;
+        default:
+          return colors.secondary;
+      }
+    };
+
+    const formatDate = (dateString) => {
+      const options = { month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    return (
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.cardBg,
+          borderRadius: 16,
+          padding: 16,
+          marginBottom: 12,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+        onPress={() => router.push(`/booking-receipt?id=${booking.id}`)}
+      >
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.footballGreen,
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: 12,
+          }}
+        >
+          <Users size={20} color="#FFFFFF" />
+        </View>
+        
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <Text
+              style={{
+                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
+                fontSize: 16,
+                color: colors.primary,
+              }}
+            >
+              {booking.playerName}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: getStatusColor(booking.status),
+                  marginRight: 6,
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
+                  fontSize: 12,
+                  color: getStatusColor(booking.status),
+                  textTransform: "capitalize",
+                }}
+              >
+                {booking.status}
+              </Text>
+            </View>
+          </View>
+          
+          <Text
+            style={{
+              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
+              fontSize: 14,
+              color: colors.secondary,
+              marginTop: 4,
+            }}
+          >
+            {booking.pitchName} • {formatDate(booking.date)} • {booking.time}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   const MetricCard = ({
@@ -113,7 +276,7 @@ export default function Dashboard() {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontFamily: "Poppins_500Medium",
+              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
               fontSize: 14,
               color: colors.secondary,
               marginBottom: 8,
@@ -123,7 +286,7 @@ export default function Dashboard() {
           </Text>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
+              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
               fontSize: 28,
               color: colors.primary,
               marginBottom: 4,
@@ -134,7 +297,7 @@ export default function Dashboard() {
           {subtitle && (
             <Text
               style={{
-                fontFamily: "Poppins_400Regular",
+                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
                 fontSize: 12,
                 color: colors.secondary,
               }}
@@ -195,7 +358,7 @@ export default function Dashboard() {
       </View>
       <Text
         style={{
-          fontFamily: "Poppins_600SemiBold",
+          fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
           fontSize: 14,
           color: "#FFFFFF",
           textAlign: "center",
@@ -206,7 +369,7 @@ export default function Dashboard() {
       </Text>
       <Text
         style={{
-          fontFamily: "Poppins_400Regular",
+          fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
           fontSize: 12,
           color: "rgba(255, 255, 255, 0.8)",
           textAlign: "center",
@@ -217,100 +380,8 @@ export default function Dashboard() {
     </TouchableOpacity>
   );
 
-  const RecentActivityItem = ({ booking }) => (
-    <TouchableOpacity
-      style={{
-        backgroundColor: colors.cardBg,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: isDark ? "#000000" : "#000000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: isDark ? 0.2 : 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
-      activeOpacity={0.7}
-      onPress={() => router.push("../bookings")}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 16,
-              color: colors.primary,
-              marginBottom: 4,
-            }}
-          >
-            {booking.player_name}
-          </Text>
-          <Text
-            style={{
-              fontFamily: "Poppins_400Regular",
-              fontSize: 14,
-              color: colors.secondary,
-              marginBottom: 2,
-            }}
-          >
-            {booking.pitch_name}
-          </Text>
-          <Text
-            style={{
-              fontFamily: "Poppins_400Regular",
-              fontSize: 12,
-              color: colors.secondary,
-            }}
-          >
-            {new Date(booking.booking_date).toLocaleDateString()} •{" "}
-            {booking.start_time} - {booking.end_time}
-          </Text>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text
-            style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 16,
-              color: colors.footballGreen,
-              marginBottom: 4,
-            }}
-          >
-            ₦{parseFloat(booking.total_amount || 0).toLocaleString()}
-          </Text>
-          <View
-            style={{
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 8,
-              backgroundColor:
-                booking.payment_status === "confirmed"
-                  ? colors.success
-                  : colors.warning,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Poppins_500Medium",
-                fontSize: 10,
-                color: "#FFFFFF",
-                textTransform: "capitalize",
-              }}
-            >
-              {booking.payment_status || "pending"}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  if (!fontsLoaded || loading) {
+  // Handle font loading states more gracefully
+  if (!fontsLoaded && !fontLoadError) {
     return (
       <View
         style={{
@@ -320,7 +391,32 @@ export default function Dashboard() {
           alignItems: "center",
         }}
       >
-        <Text style={{ fontSize: 16, color: colors.secondary }}>
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
+          Loading fonts...
+        </Text>
+      </View>
+    );
+  }
+
+  // If there's a font loading error, continue with system fonts
+  if (fontLoadError) {
+    console.log("Using system fonts due to font loading error");
+  }
+
+  // Remove loading state since we're using mock data
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.white,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading dashboard...
         </Text>
       </View>
@@ -376,7 +472,7 @@ export default function Dashboard() {
             <View>
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
                   fontSize: 20,
                   color: colors.primary,
                 }}
@@ -385,7 +481,7 @@ export default function Dashboard() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
                   fontSize: 12,
                   color: colors.secondary,
                 }}
@@ -419,7 +515,7 @@ export default function Dashboard() {
         <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
+              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
               fontSize: 24,
               color: colors.primary,
               marginBottom: 16,
@@ -460,7 +556,7 @@ export default function Dashboard() {
         <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
+              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
               fontSize: 20,
               color: colors.primary,
               marginBottom: 16,
@@ -481,7 +577,14 @@ export default function Dashboard() {
               subtitle="Manual booking"
               color={colors.footballGreen}
               icon={Plus}
-              onPress={() => router.push("../add-booking")}
+              onPress={() => router.push("/add-booking")}
+            />
+            <QuickActionCard
+              title="Add Pitch"
+              subtitle="New facility"
+              color="#6366F1"
+              icon={Building}
+              onPress={() => router.push("/add-pitch")}
             />
             <QuickActionCard
               title="View Calendar"
@@ -489,13 +592,6 @@ export default function Dashboard() {
               color={colors.footballDark}
               icon={Calendar}
               onPress={() => router.push("/(tabs)/bookings")}
-            />
-            <QuickActionCard
-              title="Manage Pitches"
-              subtitle="Edit pitch info"
-              color="#6366F1"
-              icon={Building}
-              onPress={() => router.push("/(tabs)/pitches")}
             />
           </View>
         </View>
@@ -512,7 +608,7 @@ export default function Dashboard() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
                 fontSize: 20,
                 color: colors.primary,
               }}
@@ -522,7 +618,7 @@ export default function Dashboard() {
             <TouchableOpacity onPress={() => router.push("/(tabs)/bookings")}>
               <Text
                 style={{
-                  fontFamily: "Poppins_500Medium",
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
                   fontSize: 14,
                   color: colors.footballGreen,
                 }}
@@ -551,7 +647,7 @@ export default function Dashboard() {
               <Clock size={40} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
                   fontSize: 18,
                   color: colors.primary,
                   marginTop: 16,
@@ -562,7 +658,7 @@ export default function Dashboard() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
+                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
                   fontSize: 14,
                   color: colors.secondary,
                   textAlign: "center",

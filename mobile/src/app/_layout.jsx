@@ -38,8 +38,22 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
-          <Stack.Screen name="index" />
+        <Stack screenOptions={{ headerShown: false }} initialRouteName="(tabs)">
+          <Stack.Screen name="(tabs)" />
+          {/* Add explicit routes for standalone screens */}
+          <Stack.Screen name="add-pitch" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="edit-pitch" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="simple-edit-pitch" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="add-manual-booking" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="add-booking" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="booking-receipt" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="pitch-analytics" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="support" />
+          <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="add-booking-test" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="edit-pitch-test" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="test-edit" options={{ presentation: 'modal' }} />
         </Stack>
       </GestureHandlerRootView>
     </QueryClientProvider>

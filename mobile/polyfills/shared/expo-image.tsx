@@ -1,8 +1,17 @@
-import type { ImageProps } from 'expo-image';
-import * as ExpoImage from 'expo-image';
 import { Buffer } from 'buffer';
 import React, { forwardRef, useState, useEffect, useCallback, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Image as RNImage, ImageProps as RNImageProps } from 'react-native';
+
+// Define the ImageProps interface to match expo-image's API
+interface ImageProps extends RNImageProps {
+  placeholder?: string | number | object;
+  cachePolicy?: 'memory' | 'disk' | 'none';
+  contentFit?: 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
+  contentPosition?: 'center' | 'top' | 'bottom' | 'left' | 'right' | string;
+  enableLiveTextInteraction?: boolean;
+  recyclingKey?: string;
+  transition?: number | { duration?: number; effect?: 'cross-dissolve' | 'flip-from-left' | 'flip-from-right' | 'flip-from-top' | 'flip-from-bottom' | 'curl-up' | 'curl-down' };
+}
 
 function buildGridPlaceholder(w: number, h: number): string {
   const size = Math.max(w, h);
@@ -40,7 +49,8 @@ function computeSourceKey(src: Src): string {
   return '';
 }
 
-const WrappedImage = forwardRef<ExpoImage.Image, ImageProps>(function WrappedImage(props, ref) {
+// Create a new component that provides similar functionality to expo-image
+const Image = forwardRef<RNImage, ImageProps>(function Image(props, ref) {
   const [fallbackSource, setFallbackSource] = useState<Src | null>(null);
   const source = props.source;
   const onError = props.onError;
@@ -55,8 +65,9 @@ const WrappedImage = forwardRef<ExpoImage.Image, ImageProps>(function WrappedIma
       prevKeyRef.current = currentKey;
     }
   }, [currentKey]);
-  const handleError: ImageProps['onError'] = useCallback(
-    (e: ExpoImage.ImageErrorEventData) => {
+  
+  const handleError = useCallback(
+    (e: any) => {
       onError?.(e);
 
       /* already swapped or dealing with a multi‑src array */
@@ -85,15 +96,26 @@ const WrappedImage = forwardRef<ExpoImage.Image, ImageProps>(function WrappedIma
     [source, fallbackSource, onError, style]
   );
 
-  return (
-    <ExpoImage.Image {...props} source={fallbackSource ?? source} ref={ref} onError={handleError} />
-  );
+  // Map expo-image props to react-native Image props
+  const mappedProps = {
+    ...props,
+    source: fallbackSource ?? source,
+    onError: handleError,
+    // Map contentFit to resizeMode
+    resizeMode: props.contentFit === 'cover' ? 'cover' : 
+                props.contentFit === 'contain' ? 'contain' : 
+                props.contentFit === 'fill' ? 'stretch' : 
+                props.contentFit === 'scale-down' ? 'center' : 
+                props.contentFit || props.resizeMode,
+  };
+
+  // Remove expo-image specific props that aren't supported by RN Image
+  const { contentFit, contentPosition, cachePolicy, placeholder, enableLiveTextInteraction, recyclingKey, transition, ...rnProps } = mappedProps;
+
+  return <RNImage {...rnProps} ref={ref} />;
 });
 
-/* expose static helpers so nothing breaks */
-Object.assign(WrappedImage, ExpoImage);
-
-/* re‑export everything that expo-image provides */
-export * from 'expo-image';
-export const Image = WrappedImage;
+// Export the image component and types
+export type { ImageProps };
+export { Image };
 export default Image;

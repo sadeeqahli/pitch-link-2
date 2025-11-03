@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   TextInput,
   Modal,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +27,6 @@ import {
   Check,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { ImagePicker } from "expo-image-picker";
 import * as ImagePickerAPI from "expo-image-picker";
 import {
   useFonts,
@@ -35,9 +35,13 @@ import {
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
 
+// Add the useAuth import
+import { useAuth } from '@/utils/auth/useAuth';
+
 export default function Profile() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { signOut: authSignOut } = useAuth(); // Get the signOut function from useAuth
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
@@ -49,14 +53,17 @@ export default function Profile() {
     fullName: "John Doe",
     phoneNumber: "+234 803 123 4567",
     emailAddress: "john.doe@example.com",
-    location: "Lagos, Nigeria"
+    location: "Lagos, Nigeria",
+    bio: "Professional Pitch Owner with 5+ years of experience managing premium sports facilities."
   });
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontLoadErrorResult] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -70,6 +77,14 @@ export default function Profile() {
     footballGreen: "#00CC66",
     footballDark: "#059142",
   };
+
+  useEffect(() => {
+    // Check for font loading errors
+    if (fontLoadErrorResult) {
+      setFontLoadError(true);
+      console.log("Font loading error:", fontLoadErrorResult);
+    }
+  }, [fontLoadErrorResult]);
 
   const handleScroll = (event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
@@ -119,20 +134,25 @@ export default function Profile() {
   };
 
   const startEditing = (field, currentValue) => {
+    console.log("Starting edit for field:", field, "with value:", currentValue);
     setEditingField(field);
-    setEditValue(currentValue);
+    setEditValue(currentValue || ""); // Ensure we have a string value
   };
 
   const saveEdit = () => {
-    setProfileData({
-      ...profileData,
-      [editingField]: editValue
-    });
+    console.log("Saving edit for field:", editingField, "with value:", editValue);
+    if (editingField) {
+      setProfileData(prevData => ({
+        ...prevData,
+        [editingField]: editValue
+      }));
+    }
     setEditingField(null);
     setEditValue("");
   };
 
   const cancelEdit = () => {
+    console.log("Canceling edit");
     setEditingField(null);
     setEditValue("");
   };
@@ -143,7 +163,14 @@ export default function Profile() {
       "Are you sure you want to sign out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Sign Out", style: "destructive", onPress: () => router.push("/login") },
+        { 
+          text: "Sign Out", 
+          style: "destructive", 
+          onPress: () => {
+            authSignOut(); // Clear the authentication state
+            router.push("/login"); // Navigate to login page
+          } 
+        },
       ]
     );
   };
@@ -152,12 +179,27 @@ export default function Profile() {
     router.push("../support");
   };
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontLoadError) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.white }}>
-        <Text>Loading...</Text>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.white,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
+          Loading fonts...
+        </Text>
       </View>
     );
+  }
+
+  // If there's a font loading error, continue with system fonts
+  if (fontLoadError) {
+    console.log("Using system fonts due to font loading error");
   }
 
   return (
@@ -269,7 +311,7 @@ export default function Profile() {
                 lineHeight: 22,
               }}
             >
-              Professional Pitch Owner with 5+ years of experience managing premium sports facilities.
+              {profileData.bio}
             </Text>
           </View>
 
@@ -500,6 +542,8 @@ export default function Profile() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -527,6 +571,44 @@ export default function Profile() {
                 </View>
               </View>
               <TouchableOpacity onPress={() => startEditing("location", profileData.location)}>
+                <Edit3 size={20} color={colors.footballGreen} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Bio */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingVertical: 12,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Edit3 size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: "Poppins_500Medium",
+                      fontSize: 14,
+                      color: colors.secondary,
+                      marginBottom: 2,
+                    }}
+                  >
+                    Bio
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: "Poppins_400Regular",
+                      fontSize: 16,
+                      color: colors.primary,
+                    }}
+                  >
+                    {profileData.bio}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => startEditing("bio", profileData.bio)}>
                 <Edit3 size={20} color={colors.footballGreen} />
               </TouchableOpacity>
             </View>
@@ -703,7 +785,8 @@ export default function Profile() {
               }}>
                 Edit {editingField === 'fullName' ? 'Full Name' : 
                        editingField === 'phoneNumber' ? 'Phone Number' : 
-                       editingField === 'emailAddress' ? 'Email Address' : 'Location'}
+                       editingField === 'emailAddress' ? 'Email Address' : 
+                       editingField === 'location' ? 'Location' : 'Bio'}
               </Text>
               <TouchableOpacity onPress={cancelEdit}>
                 <X size={24} color={colors.secondary} />
@@ -723,6 +806,8 @@ export default function Profile() {
               value={editValue}
               onChangeText={setEditValue}
               autoFocus
+              multiline={editingField === 'bio'}
+              numberOfLines={editingField === 'bio' ? 4 : 1}
             />
             
             <View style={{ flexDirection: 'row' }}>

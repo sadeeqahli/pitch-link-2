@@ -6,7 +6,6 @@ import './src/__create/polyfills';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Toaster } from 'sonner-native';
 import './global.css';
-import { ConvexAuthProvider } from './src/utils/convex';
 
 const GlobalErrorReporter = () => {
   useEffect(() => {
@@ -107,7 +106,6 @@ const CreateApp = () => {
   return (
     <>
       <Wrapper />
-      <AlertModal />
     </>
   );
 };

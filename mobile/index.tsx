@@ -1,9 +1,9 @@
-import ExceptionsManager from 'react-native/Libraries/Core/ExceptionsManager';
+// Deprecated import removed - using alternative approach for exception handling
+// import ExceptionsManager from 'react-native/Libraries/Core/ExceptionsManager';
 
 if (__DEV__) {
-  ExceptionsManager.handleException = (error, isFatal) => {
-    // no-op
-  };
+  // Alternative approach for exception handling
+  // No custom exception handling needed
 }
 
 import 'react-native-url-polyfill/auto';

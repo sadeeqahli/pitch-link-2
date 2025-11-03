@@ -1,5 +1,6 @@
 import React from 'react';
-import RNTextInput from 'react-native/Libraries/Components/TextInput/TextInput';
+// Fixed deprecated import - using proper TextInput import
+import { TextInput as RNTextInput } from 'react-native';
 
 const TextInput = React.forwardRef((props, ref) => {
   return (

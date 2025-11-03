@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,12 +41,15 @@ export default function Payments() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontLoadErrorResult] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -64,13 +68,44 @@ export default function Payments() {
     try {
       // Mock data for demonstration
       const mockData = {
-        totalRevenue: 125000,
-        totalTransactions: 42,
-        recentPayments: [
-          { id: 1, customer: "John Doe", amount: 15000, date: "2023-06-15", status: "completed" },
-          { id: 2, customer: "Jane Smith", amount: 20000, date: "2023-06-14", status: "pending" },
-          { id: 3, customer: "Mike Johnson", amount: 18000, date: "2023-06-14", status: "completed" },
-          { id: 4, customer: "Sarah Williams", amount: 22000, date: "2023-06-13", status: "failed" }
+        earnings: {
+          today: 125000,
+          weekly: 850000,
+          monthly: 3500000
+        },
+        recentActivity: [
+          { 
+            id: 1, 
+            player_name: "John Doe", 
+            pitch_name: "Main Football Pitch",
+            total_amount: 15000, 
+            created_at: "2023-06-15", 
+            payment_status: "completed" 
+          },
+          { 
+            id: 2, 
+            player_name: "Jane Smith", 
+            pitch_name: "Basketball Court",
+            total_amount: 20000, 
+            created_at: "2023-06-14", 
+            payment_status: "pending" 
+          },
+          { 
+            id: 3, 
+            player_name: "Mike Johnson", 
+            pitch_name: "Tennis Court",
+            total_amount: 18000, 
+            created_at: "2023-06-14", 
+            payment_status: "completed" 
+          },
+          { 
+            id: 4, 
+            player_name: "Sarah Williams", 
+            pitch_name: "Volleyball Court",
+            total_amount: 22000, 
+            created_at: "2023-06-13", 
+            payment_status: "failed" 
+          }
         ]
       };
       
@@ -88,7 +123,13 @@ export default function Payments() {
 
   useEffect(() => {
     fetchFinancialData();
-  }, []);
+    
+    // Check for font loading errors
+    if (fontLoadErrorResult) {
+      setFontLoadError(true);
+      console.log("Font loading error:", fontLoadErrorResult);
+    }
+  }, [fontLoadErrorResult]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -229,6 +270,7 @@ export default function Payments() {
           elevation: 2,
         }}
         activeOpacity={0.7}
+        onPress={() => router.push(`/booking-receipt?id=${transaction.id}`)}
       >
         <View
           style={{
@@ -356,7 +398,30 @@ export default function Payments() {
     </TouchableOpacity>
   );
 
-  if (!fontsLoaded || loading) {
+  const FilterButton = ({ title, value, isSelected, onPress }) => (
+    <TouchableOpacity
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: isSelected ? colors.footballGreen : colors.lightGray,
+        marginRight: 12,
+      }}
+      onPress={() => onPress(value)}
+    >
+      <Text
+        style={{
+          fontFamily: "Poppins_500Medium",
+          fontSize: 14,
+          color: isSelected ? "#FFFFFF" : colors.primary,
+        }}
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  if (!fontsLoaded && !fontLoadError) {
     return (
       <View
         style={{
@@ -366,7 +431,32 @@ export default function Payments() {
           alignItems: "center",
         }}
       >
-        <Text style={{ fontSize: 16, color: colors.secondary }}>
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
+          Loading fonts...
+        </Text>
+      </View>
+    );
+  }
+
+  // If there's a font loading error, continue with system fonts
+  if (fontLoadError) {
+    console.log("Using system fonts due to font loading error");
+  }
+
+  // Remove loading state since we're using mock data
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.white,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading financial data...
         </Text>
       </View>
@@ -378,7 +468,17 @@ export default function Payments() {
     weekly: 0,
     monthly: 0,
   };
-  const recentActivity = financialData?.recentActivity || [];
+  
+  // Filter transactions based on selected filter
+  let filteredTransactions = financialData?.recentActivity || [];
+  
+  if (selectedFilter === "completed") {
+    filteredTransactions = filteredTransactions.filter(t => t.payment_status === "completed");
+  } else if (selectedFilter === "pending") {
+    filteredTransactions = filteredTransactions.filter(t => t.payment_status === "pending");
+  } else if (selectedFilter === "failed") {
+    filteredTransactions = filteredTransactions.filter(t => t.payment_status === "failed");
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.lightGray }}>
@@ -544,7 +644,7 @@ export default function Payments() {
                 }}
               >
                 {
-                  recentActivity.filter((a) => a.payment_status === "confirmed")
+                  (financialData?.recentActivity || []).filter((a) => a.payment_status === "completed")
                     .length
                 }
               </Text>
@@ -591,7 +691,7 @@ export default function Payments() {
                 }}
               >
                 {
-                  recentActivity.filter((a) => a.payment_status === "pending")
+                  (financialData?.recentActivity || []).filter((a) => a.payment_status === "pending")
                     .length
                 }
               </Text>
@@ -637,7 +737,10 @@ export default function Payments() {
                   marginBottom: 2,
                 }}
               >
-                0
+                {
+                  (financialData?.recentActivity || []).filter((a) => a.payment_status === "failed")
+                    .length
+                }
               </Text>
               <Text
                 style={{
@@ -685,40 +788,40 @@ export default function Payments() {
             </TouchableOpacity>
           </View>
 
-          {/* Period Filter */}
+          {/* Filter Options */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 16 }}
           >
-            <PeriodButton
-              title="Today"
-              value="day"
-              isSelected={selectedPeriod === "day"}
-              onPress={setSelectedPeriod}
-            />
-            <PeriodButton
-              title="This Week"
-              value="week"
-              isSelected={selectedPeriod === "week"}
-              onPress={setSelectedPeriod}
-            />
-            <PeriodButton
-              title="This Month"
-              value="month"
-              isSelected={selectedPeriod === "month"}
-              onPress={setSelectedPeriod}
-            />
-            <PeriodButton
-              title="All Time"
+            <FilterButton
+              title="All"
               value="all"
-              isSelected={selectedPeriod === "all"}
-              onPress={setSelectedPeriod}
+              isSelected={selectedFilter === "all"}
+              onPress={setSelectedFilter}
+            />
+            <FilterButton
+              title="Completed"
+              value="completed"
+              isSelected={selectedFilter === "completed"}
+              onPress={setSelectedFilter}
+            />
+            <FilterButton
+              title="Pending"
+              value="pending"
+              isSelected={selectedFilter === "pending"}
+              onPress={setSelectedFilter}
+            />
+            <FilterButton
+              title="Failed"
+              value="failed"
+              isSelected={selectedFilter === "failed"}
+              onPress={setSelectedFilter}
             />
           </ScrollView>
 
-          {recentActivity.length > 0 ? (
-            recentActivity
+          {filteredTransactions.length > 0 ? (
+            filteredTransactions
               .slice(0, 10)
               .map((transaction) => (
                 <TransactionItem
@@ -747,7 +850,7 @@ export default function Payments() {
                   textAlign: "center",
                 }}
               >
-                No Transactions Yet
+                No Transactions Found
               </Text>
               <Text
                 style={{
@@ -758,8 +861,9 @@ export default function Payments() {
                   marginTop: 8,
                 }}
               >
-                Payment transactions will appear here once you start receiving
-                bookings
+                {selectedFilter === "all"
+                  ? "Payment transactions will appear here once you start receiving bookings"
+                  : `No ${selectedFilter} transactions found`}
               </Text>
             </View>
           )}

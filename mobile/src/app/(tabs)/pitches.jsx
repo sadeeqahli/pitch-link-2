@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Switch,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,14 +26,7 @@ import {
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
-import {
-  useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Pitches() {
   const insets = useSafeAreaInsets();
@@ -42,16 +36,7 @@ export default function Pitches() {
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Convex queries and mutations
-  const pitches = useQuery(api.pitches.getPitches);
-  const [updatePitch] = useMutation(api.pitches.updatePitch);
-
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-  });
+  const [pitches, setPitches] = useState([]);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -67,15 +52,33 @@ export default function Pitches() {
   };
 
   useEffect(() => {
-    if (pitches !== undefined) {
+    loadPitches();
+  }, []);
+
+  const loadPitches = async () => {
+    try {
+      setLoading(true);
+      const storedPitches = await AsyncStorage.getItem('pitches');
+      if (storedPitches) {
+        const parsedPitches = JSON.parse(storedPitches);
+        setPitches(parsedPitches);
+      } else {
+        // Initialize with empty array if no pitches exist
+        setPitches([]);
+      }
+    } catch (error) {
+      console.error("Error loading pitches:", error);
+      setPitches([]);
+      Alert.alert("Error", "Failed to load pitches. Please try again.");
+    } finally {
       setLoading(false);
     }
-  }, [pitches]);
+  };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    // Refresh is handled automatically by Convex
-    setTimeout(() => setRefreshing(false), 1000);
+    await loadPitches();
+    setRefreshing(false);
   };
 
   const handleScroll = (event) => {
@@ -85,13 +88,26 @@ export default function Pitches() {
 
   const togglePitchStatus = async (pitchId, currentStatus) => {
     try {
-      await updatePitch({
-        pitchId,
-        isActive: !currentStatus,
-      });
+      // Update the pitch status in the local state
+      const updatedPitches = pitches.map(pitch => 
+        pitch._id === pitchId 
+          ? { ...pitch, is_active: !currentStatus } 
+          : pitch
+      );
+      
+      setPitches(updatedPitches);
+      
+      // Save updated pitches to AsyncStorage
+      await AsyncStorage.setItem('pitches', JSON.stringify(updatedPitches));
+    
+      // Show success message
+      console.log("Pitch status updated successfully");
     } catch (error) {
       console.error("Error updating pitch status:", error);
       Alert.alert("Error", "Failed to update pitch status. Please try again.");
+      
+      // Reload pitches to revert the change in case of error
+      loadPitches();
     }
   };
 
@@ -132,7 +148,7 @@ export default function Pitches() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontWeight: "600",
                 fontSize: 18,
                 color: colors.primary,
                 marginBottom: 4,
@@ -144,7 +160,6 @@ export default function Pitches() {
               <MapPin size={14} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
                   fontSize: 14,
                   color: colors.secondary,
                   marginLeft: 4,
@@ -170,7 +185,7 @@ export default function Pitches() {
               )}
               <Text
                 style={{
-                  fontFamily: "Poppins_500Medium",
+                  fontWeight: "500",
                   fontSize: 12,
                   color: pitch.is_active ? colors.success : colors.error,
                   marginLeft: 4,
@@ -195,7 +210,6 @@ export default function Pitches() {
         {pitch.description && (
           <Text
             style={{
-              fontFamily: "Poppins_400Regular",
               fontSize: 14,
               color: colors.secondary,
               marginBottom: 16,
@@ -220,13 +234,13 @@ export default function Pitches() {
             <DollarSign size={16} color={colors.footballGreen} />
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontWeight: "600",
                 fontSize: 18,
                 color: colors.footballGreen,
                 marginLeft: 4,
               }}
             >
-              ₦{parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hour
+              NGN{parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hour
             </Text>
           </View>
 
@@ -235,7 +249,6 @@ export default function Pitches() {
               <Users size={14} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
                   fontSize: 12,
                   color: colors.secondary,
                   marginLeft: 4,
@@ -266,7 +279,6 @@ export default function Pitches() {
               >
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
                     fontSize: 12,
                     color: colors.secondary,
                   }}
@@ -286,7 +298,7 @@ export default function Pitches() {
               >
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
+                    fontWeight: "500",
                     fontSize: 12,
                     color: "#FFFFFF",
                   }}
@@ -310,12 +322,12 @@ export default function Pitches() {
               flexDirection: "row",
               justifyContent: "center",
             }}
-            onPress={() => router.push(`/edit-pitch?id=${pitch._id}`)}
+            onPress={() => router.push(`/simple-edit-pitch?id=${pitch._id}`)}
           >
             <Edit size={16} color="#FFFFFF" />
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontWeight: "600",
                 fontSize: 14,
                 color: "#FFFFFF",
                 marginLeft: 8,
@@ -340,7 +352,7 @@ export default function Pitches() {
             <Star size={16} color={colors.primary} />
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontWeight: "600",
                 fontSize: 14,
                 color: colors.primary,
                 marginLeft: 8,
@@ -354,17 +366,19 @@ export default function Pitches() {
     </View>
   );
 
-  if (!fontsLoaded || loading) {
+  // Show loading indicator while pitches are loading
+  if (loading) {
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: colors.white,
+          backgroundColor: colors.lightGray,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <Text style={{ fontSize: 16, color: colors.secondary }}>
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading pitches...
         </Text>
       </View>
@@ -411,7 +425,7 @@ export default function Pitches() {
           <View>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontWeight: "600",
                 fontSize: 24,
                 color: colors.primary,
               }}
@@ -420,7 +434,6 @@ export default function Pitches() {
             </Text>
             <Text
               style={{
-                fontFamily: "Poppins_400Regular",
                 fontSize: 14,
                 color: colors.secondary,
               }}
@@ -473,7 +486,7 @@ export default function Pitches() {
                 >
                   <Text
                     style={{
-                      fontFamily: "Poppins_600SemiBold",
+                      fontWeight: "600",
                       fontSize: 24,
                       color: colors.footballGreen,
                       marginBottom: 4,
@@ -483,7 +496,6 @@ export default function Pitches() {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "Poppins_400Regular",
                       fontSize: 14,
                       color: colors.secondary,
                       textAlign: "center",
@@ -504,7 +516,7 @@ export default function Pitches() {
                 >
                   <Text
                     style={{
-                      fontFamily: "Poppins_600SemiBold",
+                      fontWeight: "600",
                       fontSize: 24,
                       color: colors.primary,
                       marginBottom: 4,
@@ -514,7 +526,6 @@ export default function Pitches() {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "Poppins_400Regular",
                       fontSize: 14,
                       color: colors.secondary,
                       textAlign: "center",
@@ -543,7 +554,7 @@ export default function Pitches() {
               <Building size={48} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontWeight: "600",
                   fontSize: 18,
                   color: colors.primary,
                   marginTop: 16,
@@ -554,7 +565,6 @@ export default function Pitches() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
                   fontSize: 14,
                   color: colors.secondary,
                   textAlign: "center",
@@ -578,7 +588,7 @@ export default function Pitches() {
                 <Plus size={16} color="#FFFFFF" />
                 <Text
                   style={{
-                    fontFamily: "Poppins_600SemiBold",
+                    fontWeight: "600",
                     fontSize: 14,
                     color: "#FFFFFF",
                     marginLeft: 8,

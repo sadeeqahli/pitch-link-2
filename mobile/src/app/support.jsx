@@ -15,8 +15,6 @@ import {
   Phone,
   Mail,
   MessageSquare,
-  Bug,
-  Star,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import {
@@ -95,33 +93,6 @@ export default function SupportPage() {
             Alert.alert("Error", "Unable to open WhatsApp. Please try again.");
           }
         }
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleQuickAction = (action) => {
-    switch (action) {
-      case "bug":
-        Alert.alert(
-          "Report a Bug",
-          "Please describe the issue you're experiencing:",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Submit", style: "default" },
-          ]
-        );
-        break;
-      case "rate":
-        Alert.alert(
-          "Rate the App",
-          "You will be redirected to the app store to rate our application.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Continue", style: "default" },
-          ]
-        );
         break;
       default:
         break;
@@ -346,120 +317,6 @@ export default function SupportPage() {
             </TouchableOpacity>
           </View>
 
-          {/* Quick Actions Section */}
-          <Text
-            style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 18,
-              color: colors.primary,
-              marginBottom: 16,
-            }}
-          >
-            Quick Actions
-          </Text>
-
-          <View
-            style={{
-              backgroundColor: colors.cardBg,
-              borderRadius: 16,
-              padding: 20,
-              shadowColor: isDark ? "#000000" : "#000000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: isDark ? 0.3 : 0.1,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
-            {/* Report a Bug */}
-            <TouchableOpacity
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
-              }}
-              onPress={() => handleQuickAction("bug")}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: colors.warning,
-                  borderRadius: 20,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 16,
-                }}
-              >
-                <Bug size={20} color="#FFFFFF" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 16,
-                    color: colors.primary,
-                  }}
-                >
-                  Report a Bug
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 14,
-                    color: colors.secondary,
-                  }}
-                >
-                  Report any issues you've encountered
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Rate the App */}
-            <TouchableOpacity
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 16,
-              }}
-              onPress={() => handleQuickAction("rate")}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: colors.success,
-                  borderRadius: 20,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 16,
-                }}
-              >
-                <Star size={20} color="#FFFFFF" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 16,
-                    color: colors.primary,
-                  }}
-                >
-                  Rate the App
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 14,
-                    color: colors.secondary,
-                  }}
-                >
-                  Share your experience with us
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </View>

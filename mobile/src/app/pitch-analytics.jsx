@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,10 +24,71 @@ import {
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
 import { LineChart, BarChart } from "react-native-chart-kit";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 
 const { width } = Dimensions.get("window");
+
+// Helper function to generate realistic data based on period
+const generateAnalyticsData = (period) => {
+  const now = new Date();
+  let labels = [];
+  let revenueData = [];
+  let bookingsData = [];
+  let totalRevenue = 0;
+  let totalBookings = 0;
+
+  switch (period) {
+    case "week":
+      // Daily data for this week
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      labels = days;
+      // More bookings and revenue on weekends
+      revenueData = [12000, 15000, 13000, 14000, 18000, 25000, 22000];
+      bookingsData = [8, 9, 7, 8, 12, 18, 15];
+      totalRevenue = revenueData.reduce((sum, val) => sum + val, 0);
+      totalBookings = bookingsData.reduce((sum, val) => sum + val, 0);
+      break;
+      
+    case "month":
+      // Weekly data for this month
+      labels = ["Week 1", "Week 2", "Week 3", "Week 4"];
+      revenueData = [85000, 92000, 78000, 105000];
+      bookingsData = [55, 62, 48, 75];
+      totalRevenue = revenueData.reduce((sum, val) => sum + val, 0);
+      totalBookings = bookingsData.reduce((sum, val) => sum + val, 0);
+      break;
+      
+    case "year":
+      // Monthly data for this year
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      labels = months;
+      // Seasonal variation - more activity in certain months
+      revenueData = [75000, 68000, 82000, 95000, 110000, 130000, 145000, 140000, 120000, 100000, 85000, 80000];
+      bookingsData = [50, 45, 55, 65, 75, 90, 100, 95, 80, 65, 55, 50];
+      totalRevenue = revenueData.reduce((sum, val) => sum + val, 0);
+      totalBookings = bookingsData.reduce((sum, val) => sum + val, 0);
+      break;
+      
+    default:
+      labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      revenueData = [12000, 19000, 15000, 22000, 18000, 25000, 20000];
+      bookingsData = [8, 12, 9, 15, 11, 18, 14];
+      totalRevenue = 131000;
+      totalBookings = 87;
+  }
+  
+  // Calculate occupancy rate based on bookings
+  const occupancyRate = Math.min(100, Math.floor((totalBookings / (labels.length * 5)) * 100));
+  
+  return {
+    revenueLabels: labels,
+    revenueData,
+    bookingsLabels: labels,
+    bookingsData,
+    totalRevenue,
+    totalBookings,
+    occupancyRate,
+  };
+};
 
 export default function PitchAnalytics() {
   const insets = useSafeAreaInsets();
@@ -37,12 +98,12 @@ export default function PitchAnalytics() {
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
+  const [analyticsData, setAnalyticsData] = useState(generateAnalyticsData("week"));
 
-  // Convex queries
-  const analyticsData = useQuery(api.analytics.getAnalytics, { 
-    pitchId: id,
-    period: selectedPeriod 
-  });
+  // Update data when period changes
+  useEffect(() => {
+    setAnalyticsData(generateAnalyticsData(selectedPeriod));
+  }, [selectedPeriod]);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -188,7 +249,7 @@ export default function PitchAnalytics() {
               marginBottom: 24,
             }}
           >
-            {["day", "week", "month", "year"].map((period) => (
+            {["week", "month", "year"].map((period) => (
               <TouchableOpacity
                 key={period}
                 style={{
@@ -287,6 +348,48 @@ export default function PitchAnalytics() {
                 Bookings
               </Text>
             </View>
+          </View>
+
+          {/* Occupancy Rate */}
+          <View
+            style={{
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Poppins_600SemiBold",
+                fontSize: 18,
+                color: colors.primary,
+                marginBottom: 8,
+              }}
+            >
+              Occupancy Rate
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Poppins_600SemiBold",
+                fontSize: 32,
+                color: colors.footballGreen,
+              }}
+            >
+              {analyticsData?.occupancyRate || 0}%
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Poppins_400Regular",
+                fontSize: 14,
+                color: colors.secondary,
+                textAlign: "center",
+                marginTop: 4,
+              }}
+            >
+              Based on {selectedPeriod} data
+            </Text>
           </View>
 
           {/* Revenue Chart */}

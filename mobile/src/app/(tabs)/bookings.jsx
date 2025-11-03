@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +22,7 @@ import {
   XCircle,
   Plus,
 } from "lucide-react-native";
+import { bookingsStorage } from "../../utils/bookingStorage";
 import { useRouter } from "expo-router";
 import {
   useFonts,
@@ -28,8 +30,8 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+
+
 
 export default function Bookings() {
   const insets = useSafeAreaInsets();
@@ -40,16 +42,18 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [bookings, setBookings] = useState([]);
 
-  // Convex queries
-  const bookings = useQuery(api.bookings.getFilteredBookings, { filter: selectedFilter });
-  const allBookings = useQuery(api.bookings.getBookings);
+  // Mock data to replace Convex queries
+  const allBookings = bookings;
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontLoadErrorResult] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -65,14 +69,32 @@ export default function Bookings() {
   };
 
   useEffect(() => {
-    if (bookings !== undefined) {
+    // Load bookings from storage
+    loadBookings();
+    
+    // Check for font loading errors
+    if (fontLoadErrorResult) {
+      setFontLoadError(true);
+      console.log("Font loading error:", fontLoadErrorResult);
+    }
+  }, [fontLoadErrorResult]);
+
+  const loadBookings = () => {
+    try {
+      const storedBookings = bookingsStorage.getAllBookings();
+      setBookings(storedBookings);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading bookings:", error);
+      // Fallback to mock data
+      setBookings(bookingsStorage.bookings);
       setLoading(false);
     }
-  }, [bookings]);
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Refresh is handled automatically by Convex
+    loadBookings();
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -124,7 +146,7 @@ export default function Bookings() {
           elevation: 3,
         }}
         activeOpacity={0.8}
-        onPress={() => router.push("/(tabs)/dashboard")}
+        onPress={() => router.push(`/booking-receipt?id=${booking.id}`)}
       >
         <View
           style={{
@@ -301,7 +323,7 @@ export default function Bookings() {
     </TouchableOpacity>
   );
 
-  if (!fontsLoaded || loading) {
+  if (!fontsLoaded && !fontLoadError) {
     return (
       <View
         style={{
@@ -311,7 +333,32 @@ export default function Bookings() {
           alignItems: "center",
         }}
       >
-        <Text style={{ fontSize: 16, color: colors.secondary }}>
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
+          Loading fonts...
+        </Text>
+      </View>
+    );
+  }
+
+  // If there's a font loading error, continue with system fonts
+  if (fontLoadError) {
+    console.log("Using system fonts due to font loading error");
+  }
+
+  // Remove loading state since we're using mock data
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.white,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading bookings...
         </Text>
       </View>
@@ -387,28 +434,16 @@ export default function Bookings() {
             </Text>
           </View>
 
+          {/* Add Manual Booking Button */}
           <TouchableOpacity
             style={{
               backgroundColor: colors.footballGreen,
-              borderRadius: 16,
-              paddingVertical: 16,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: 8,
+              borderRadius: 12,
+              padding: 10,
             }}
             onPress={() => router.push("../add-booking")}
           >
-            <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text
-              style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 16,
-                color: "#FFFFFF",
-              }}
-            >
-              Add New Booking
-            </Text>
+            <Plus size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -427,7 +462,8 @@ export default function Bookings() {
           />
         }
       >
-        {/* Filter buttons */}
+        {/* Filter buttons */
+        }
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -504,7 +540,7 @@ export default function Bookings() {
                   paddingVertical: 10,
                   marginTop: 16,
                 }}
-                onPress={() => router.push("/add-booking")}
+                onPress={() => router.push("../add-booking")}
               >
                 <Text
                   style={{
