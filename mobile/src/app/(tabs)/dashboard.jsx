@@ -21,15 +21,17 @@ import {
   TrendingUp,
   Clock,
   Users,
+  ChevronRight,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -104,22 +106,22 @@ export default function Dashboard() {
   ];
 
   const [fontsLoaded, fontLoadErrorResult] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
   };
 
   useEffect(() => {
@@ -183,7 +185,7 @@ export default function Dashboard() {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: colors.footballGreen,
+            backgroundColor: colors.primaryGreen,
             alignItems: "center",
             justifyContent: "center",
             marginRight: 12,
@@ -196,7 +198,7 @@ export default function Dashboard() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Text
               style={{
-                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
+                fontFamily: "Inter_600SemiBold",
                 fontSize: 16,
                 color: colors.primary,
               }}
@@ -207,6 +209,10 @@ export default function Dashboard() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
+                backgroundColor: getStatusColor(booking.status) + "20",
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 12,
               }}
             >
               <View
@@ -215,12 +221,12 @@ export default function Dashboard() {
                   height: 8,
                   borderRadius: 4,
                   backgroundColor: getStatusColor(booking.status),
-                  marginRight: 6,
+                  marginRight: 4,
                 }}
               />
               <Text
                 style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
+                  fontFamily: "Inter_500Medium",
                   fontSize: 12,
                   color: getStatusColor(booking.status),
                   textTransform: "capitalize",
@@ -233,32 +239,51 @@ export default function Dashboard() {
           
           <Text
             style={{
-              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
+              fontFamily: "Inter_500Medium",
               fontSize: 14,
               color: colors.secondary,
               marginTop: 4,
             }}
           >
-            {booking.pitchName} • {formatDate(booking.date)} • {booking.time}
+            {booking.pitchName} • {formatDate(booking.date)}
           </Text>
+          
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              fontSize: 14,
+              color: colors.secondary,
+              marginTop: 2,
+            }}
+          >
+            {booking.time}
+          </Text>
+        </View>
+        
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: colors.lightGray,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ChevronRight size={20} color={colors.secondary} />
         </View>
       </TouchableOpacity>
     );
   };
 
-  const MetricCard = ({
-    title,
-    value,
-    subtitle,
-    color,
-    icon: IconComponent,
-  }) => (
+  // Added missing StatCard component
+  const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
     <View
       style={{
         backgroundColor: colors.cardBg,
         borderRadius: 16,
         padding: 20,
-        marginBottom: 16,
+        flex: 1,
         shadowColor: isDark ? "#000000" : "#000000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: isDark ? 0.3 : 0.1,
@@ -266,17 +291,11 @@ export default function Dashboard() {
         elevation: 3,
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <View>
           <Text
             style={{
-              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
+              fontFamily: "Inter_500Medium",
               fontSize: 14,
               color: colors.secondary,
               marginBottom: 8,
@@ -286,10 +305,9 @@ export default function Dashboard() {
           </Text>
           <Text
             style={{
-              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
+              fontFamily: "Inter_700Bold",
               fontSize: 28,
-              color: colors.primary,
-              marginBottom: 4,
+              color: color || colors.primary,
             }}
           >
             {value}
@@ -297,90 +315,34 @@ export default function Dashboard() {
           {subtitle && (
             <Text
               style={{
-                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
+                fontFamily: "Inter_400Regular",
                 fontSize: 12,
                 color: colors.secondary,
+                marginTop: 4,
               }}
             >
               {subtitle}
             </Text>
           )}
         </View>
-        <View
-          style={{
-            width: 48,
-            height: 48,
-            backgroundColor: color,
-            borderRadius: 24,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <IconComponent size={24} color="#FFFFFF" />
-        </View>
+        {Icon && (
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: (color || colors.primary) + "20",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon size={24} color={color || colors.primary} />
+          </View>
+        )}
       </View>
     </View>
   );
 
-  const QuickActionCard = ({
-    title,
-    subtitle,
-    color,
-    icon: IconComponent,
-    onPress,
-  }) => (
-    <TouchableOpacity
-      style={{
-        flex: 1,
-        backgroundColor: color,
-        borderRadius: 16,
-        padding: 20,
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 120,
-        marginHorizontal: 8,
-      }}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          backgroundColor: "rgba(255, 255, 255, 0.2)",
-          borderRadius: 20,
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: 12,
-        }}
-      >
-        <IconComponent size={20} color="#FFFFFF" />
-      </View>
-      <Text
-        style={{
-          fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-          fontSize: 14,
-          color: "#FFFFFF",
-          textAlign: "center",
-          marginBottom: 4,
-        }}
-      >
-        {title}
-      </Text>
-      <Text
-        style={{
-          fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
-          fontSize: 12,
-          color: "rgba(255, 255, 255, 0.8)",
-          textAlign: "center",
-        }}
-      >
-        {subtitle}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  // Handle font loading states more gracefully
   if (!fontsLoaded && !fontLoadError) {
     return (
       <View
@@ -391,7 +353,7 @@ export default function Dashboard() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading fonts...
         </Text>
@@ -404,7 +366,6 @@ export default function Dashboard() {
     console.log("Using system fonts due to font loading error");
   }
 
-  // Remove loading state since we're using mock data
   if (loading) {
     return (
       <View
@@ -415,7 +376,7 @@ export default function Dashboard() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading dashboard...
         </Text>
@@ -424,251 +385,387 @@ export default function Dashboard() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.lightGray }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-
-      {/* Background football pattern */}
-      <View
-        style={{
-          position: "absolute",
-          top: -100,
-          right: -50,
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          backgroundColor: colors.footballGreen,
-          opacity: 0.1,
-        }}
-      />
-
+      
       {/* Header */}
       <View
         style={{
-          backgroundColor: colors.white,
           paddingTop: insets.top + 12,
           paddingBottom: 16,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
+          backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
-          zIndex: 1000,
+          shadowColor: showHeaderBorder ? (isDark ? "#000000" : "#000000") : "transparent",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: showHeaderBorder ? (isDark ? 0.3 : 0.1) : 0,
+          shadowRadius: showHeaderBorder ? 8 : 0,
+          elevation: showHeaderBorder ? 3 : 0,
+          zIndex: 10,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Logo */}
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image
-              source={{
-                uri: "https://ucarecdn.com/803dfc8d-a031-4f35-9ce6-13ba59adea83/-/format/auto/",
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View>
+            <Text
+              style={{
+                fontFamily: "Inter_700Bold",
+                fontSize: 28,
+                color: colors.primary,
               }}
-              style={{ width: 32, height: 32, marginRight: 12 }}
-              contentFit="contain"
-            />
-            <View>
-              <Text
-                style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-                  fontSize: 20,
-                  color: colors.primary,
-                }}
-              >
-                PitchOwner
-              </Text>
-              <Text
-                style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
-                  fontSize: 12,
-                  color: colors.secondary,
-                }}
-              >
-                Dashboard
-              </Text>
-            </View>
+            >
+              Dashboard
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 16,
+                color: colors.secondary,
+                marginTop: 4,
+              }}
+            >
+              Welcome back, John!
+            </Text>
           </View>
-
-          <TouchableOpacity onPress={() => router.push("../notifications")}>
-            <Bell size={24} color={colors.primary} />
-          </TouchableOpacity>
+          
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.lightGray,
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 12,
+              }}
+            >
+              <Bell size={20} color={colors.primary} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.lightGray,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Menu size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.footballGreen}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primaryGreen} />
         }
       >
-        {/* Key Metrics */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
-          <Text
-            style={{
-              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-              fontSize: 24,
-              color: colors.primary,
-              marginBottom: 16,
-            }}
-          >
-            Today's Overview
-          </Text>
-
-          <MetricCard
-            title="Today's Earnings"
-            value={`₦${dashboardData?.earnings?.today?.toLocaleString() || "0"}`}
-            subtitle={`Weekly: ₦${dashboardData?.earnings?.weekly?.toLocaleString() || "0"} • Monthly: ₦${dashboardData?.earnings?.monthly?.toLocaleString() || "0"}`}
-            color={colors.footballGreen}
-            icon={DollarSign}
-          />
-
-          <View style={{ flexDirection: "row", marginHorizontal: -8 }}>
-            <View style={{ flex: 1, paddingHorizontal: 8 }}>
-              <MetricCard
-                title="Pending Bookings"
-                value={dashboardData?.bookings?.pending?.toString() || "0"}
-                color={colors.warning}
-                icon={Clock}
-              />
-            </View>
-            <View style={{ flex: 1, paddingHorizontal: 8 }}>
-              <MetricCard
-                title="Upcoming Bookings"
-                value={dashboardData?.bookings?.upcoming?.toString() || "0"}
-                color={colors.footballDark}
-                icon={Calendar}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-          <Text
-            style={{
-              fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-              fontSize: 20,
-              color: colors.primary,
-              marginBottom: 16,
-            }}
-          >
-            Quick Actions
-          </Text>
-
-          <View
-            style={{
-              flexDirection: "row",
-              marginHorizontal: -8,
-              marginBottom: 16,
-            }}
-          >
-            <QuickActionCard
-              title="Add Booking"
-              subtitle="Manual booking"
-              color={colors.footballGreen}
-              icon={Plus}
-              onPress={() => router.push("/add-booking")}
-            />
-            <QuickActionCard
-              title="Add Pitch"
-              subtitle="New facility"
-              color="#6366F1"
-              icon={Building}
-              onPress={() => router.push("/add-pitch")}
-            />
-            <QuickActionCard
-              title="View Calendar"
-              subtitle="Check schedule"
-              color={colors.footballDark}
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
+          {/* Stats Grid */}
+          <View style={{ flexDirection: "row", gap: 16, marginBottom: 24 }}>
+            <StatCard
+              title="Total Bookings"
+              value={dashboardData.totalBookings}
               icon={Calendar}
-              onPress={() => router.push("/(tabs)/bookings")}
+              color={colors.primaryGreen}
+            />
+            
+            <StatCard
+              title="Active Pitches"
+              value={dashboardData.activePitches}
+              icon={Building}
+              color={colors.footballDark}
             />
           </View>
-        </View>
 
-        {/* Recent Activity */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
+          {/* Earnings Overview */}
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+              shadowColor: isDark ? "#000000" : "#000000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 3,
             }}
           >
-            <Text
-              style={{
-                fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-                fontSize: 20,
-                color: colors.primary,
-              }}
-            >
-              Recent Activity
-            </Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/bookings")}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <Text
                 style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_500Medium" : "normal",
-                  fontSize: 14,
-                  color: colors.footballGreen,
+                  fontFamily: "Inter_600SemiBold",
+                  fontSize: 20,
+                  color: colors.primary,
                 }}
               >
-                View All
+                Earnings Overview
+              </Text>
+              <TouchableOpacity>
+                <Text
+                  style={{
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 14,
+                    color: colors.primaryGreen,
+                  }}
+                >
+                  View Report
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={{ flexDirection: "row", gap: 16, marginBottom: 24 }}>
+              <StatCard
+                title="Today"
+                value={`₦${(dashboardData.earnings.today / 1000).toFixed(1)}k`}
+                subtitle="+12% from yesterday"
+                color={colors.primaryGreen}
+              />
+              
+              <StatCard
+                title="This Week"
+                value={`₦${(dashboardData.earnings.weekly / 1000).toFixed(1)}k`}
+                subtitle="+8% from last week"
+                color={colors.footballDark}
+              />
+            </View>
+            
+            <View
+              style={{
+                backgroundColor: colors.lightGray,
+                borderRadius: 12,
+                padding: 16,
+              }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 14,
+                    color: colors.secondary,
+                  }}
+                >
+                  Monthly Earnings
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter_700Bold",
+                    fontSize: 20,
+                    color: colors.primary,
+                  }}
+                >
+                  ₦{(dashboardData.earnings.monthly / 1000).toFixed(1)}k
+                </Text>
+              </View>
+              
+              <View
+                style={{
+                  height: 8,
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 4,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    height: "100%",
+                    width: "78%",
+                    backgroundColor: colors.primaryGreen,
+                    borderRadius: 4,
+                  }}
+                />
+              </View>
+              
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 12,
+                    color: colors.secondary,
+                  }}
+                >
+                  Occupancy Rate: {dashboardData.occupancyRate}%
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 12,
+                    color: colors.secondary,
+                  }}
+                >
+                  Target: 90%
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Quick Actions */}
+          <View style={{ flexDirection: "row", gap: 16, marginBottom: 24 }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: colors.cardBg,
+                borderRadius: 16,
+                padding: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: isDark ? "#000000" : "#000000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+              onPress={() => router.push("/add-booking")}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: colors.primaryGreen + "20",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Plus size={24} color={colors.primaryGreen} />
+              </View>
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+              >
+                Add Booking
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: colors.cardBg,
+                borderRadius: 16,
+                padding: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: isDark ? "#000000" : "#000000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.3 : 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+              onPress={() => router.push("/add-pitch")}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: colors.footballDark + "20",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <Building size={24} color={colors.footballDark} />
+              </View>
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+              >
+                Add Pitch
               </Text>
             </TouchableOpacity>
           </View>
 
-          {recentActivity?.length > 0 ? (
-            recentActivity
-              .slice(0, 5)
-              .map((booking) => (
-                <RecentActivityItem key={booking.id} booking={booking} />
-              ))
-          ) : (
+          {/* Recent Activity */}
+          <View style={{ paddingHorizontal: 0, paddingTop: 8 }}>
             <View
               style={{
-                backgroundColor: colors.cardBg,
-                borderRadius: 16,
-                padding: 32,
+                flexDirection: "row",
+                justifyContent: "space-between",
                 alignItems: "center",
-                justifyContent: "center",
+                marginBottom: 16,
               }}
             >
-              <Clock size={40} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_600SemiBold" : "normal",
-                  fontSize: 18,
+                  fontFamily: "Inter_600SemiBold",
+                  fontSize: 20,
                   color: colors.primary,
-                  marginTop: 16,
-                  textAlign: "center",
                 }}
               >
-                No Recent Activity
+                Recent Activity
               </Text>
-              <Text
-                style={{
-                  fontFamily: fontsLoaded && !fontLoadError ? "Poppins_400Regular" : "normal",
-                  fontSize: 14,
-                  color: colors.secondary,
-                  textAlign: "center",
-                  marginTop: 8,
-                }}
-              >
-                New bookings will appear here
-              </Text>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/bookings")}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 14,
+                    color: colors.primaryGreen,
+                  }}
+                >
+                  View All
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
+
+            {recentActivity?.length > 0 ? (
+              recentActivity
+                .slice(0, 5)
+                .map((booking) => (
+                  <RecentActivityItem key={booking.id} booking={booking} />
+                ))
+            ) : (
+              <View
+                style={{
+                  backgroundColor: colors.cardBg,
+                  borderRadius: 16,
+                  padding: 32,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Clock size={40} color={colors.secondary} />
+                <Text
+                  style={{
+                    fontFamily: "Inter_600SemiBold",
+                    fontSize: 18,
+                    color: colors.primary,
+                    marginTop: 16,
+                    textAlign: "center",
+                  }}
+                >
+                  No Recent Activity
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
+                    color: colors.secondary,
+                    textAlign: "center",
+                    marginTop: 8,
+                  }}
+                >
+                  New bookings will appear here
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>

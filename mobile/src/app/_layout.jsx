@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/utils/auth/useAuth';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -53,7 +52,6 @@ export default function RootLayout() {
           <Stack.Screen name="edit" options={{ presentation: 'modal' }} />
           <Stack.Screen name="add-booking-test" options={{ presentation: 'modal' }} />
           <Stack.Screen name="edit-pitch-test" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="test-edit" options={{ presentation: 'modal' }} />
         </Stack>
       </GestureHandlerRootView>
     </QueryClientProvider>

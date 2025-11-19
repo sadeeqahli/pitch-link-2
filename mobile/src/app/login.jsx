@@ -15,10 +15,11 @@ import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react-native";
 
 export default function Login() {
@@ -27,9 +28,10 @@ export default function Login() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const [email, setEmail] = useState("");
@@ -39,17 +41,16 @@ export default function Login() {
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
     inputBorder: isDark ? "#374151" : "#D1D5DB",
-    inputFocus: "#00CC66",
+    inputFocus: "#00FF88",
   };
 
   const handleLogin = async () => {
@@ -70,7 +71,7 @@ export default function Login() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // For demo purposes, navigate to dashboard
-      router.replace("/(tabs)/dashboard");
+      router.replace("/dashboard");
     } catch (error) {
       Alert.alert("Error", "Login failed. Please try again.");
     } finally {
@@ -105,7 +106,7 @@ export default function Login() {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: "center",
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
           paddingBottom: insets.bottom + 24,
           paddingTop: insets.top + 24,
         }}
@@ -117,7 +118,7 @@ export default function Login() {
               width: 80,
               height: 80,
               borderRadius: 40,
-              backgroundColor: colors.footballGreen,
+              backgroundColor: colors.primaryGreen,
               alignItems: "center",
               justifyContent: "center",
               marginBottom: 16,
@@ -125,7 +126,7 @@ export default function Login() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_700Bold",
                 fontSize: 24,
                 color: "#FFFFFF",
               }}
@@ -135,7 +136,7 @@ export default function Login() {
           </View>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
+              fontFamily: "Inter_700Bold",
               fontSize: 28,
               color: colors.primary,
               marginBottom: 8,
@@ -145,7 +146,7 @@ export default function Login() {
           </Text>
           <Text
             style={{
-              fontFamily: "Poppins_400Regular",
+              fontFamily: "Inter_500Medium",
               fontSize: 16,
               color: colors.secondary,
               textAlign: "center",
@@ -158,7 +159,7 @@ export default function Login() {
         <View style={{ marginBottom: 24 }}>
           <Text
             style={{
-              fontFamily: "Poppins_500Medium",
+              fontFamily: "Inter_500Medium",
               fontSize: 16,
               color: colors.primary,
               marginBottom: 8,
@@ -183,7 +184,7 @@ export default function Login() {
             <TextInput
               style={{
                 flex: 1,
-                fontFamily: "Poppins_400Regular",
+                fontFamily: "Inter_400Regular",
                 fontSize: 16,
                 color: colors.primary,
               }}
@@ -199,7 +200,7 @@ export default function Login() {
 
           <Text
             style={{
-              fontFamily: "Poppins_500Medium",
+              fontFamily: "Inter_500Medium",
               fontSize: 16,
               color: colors.primary,
               marginBottom: 8,
@@ -223,7 +224,7 @@ export default function Login() {
             <TextInput
               style={{
                 flex: 1,
-                fontFamily: "Poppins_400Regular",
+                fontFamily: "Inter_400Regular",
                 fontSize: 16,
                 color: colors.primary,
               }}
@@ -250,9 +251,9 @@ export default function Login() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_500Medium",
+                fontFamily: "Inter_500Medium",
                 fontSize: 14,
-                color: colors.footballGreen,
+                color: colors.primaryGreen,
               }}
             >
               Forgot Password?
@@ -262,7 +263,7 @@ export default function Login() {
 
         <TouchableOpacity
           style={{
-            backgroundColor: loading ? colors.secondary : colors.footballGreen,
+            backgroundColor: loading ? colors.secondary : colors.primaryGreen,
             borderRadius: 12,
             paddingVertical: 16,
             alignItems: "center",
@@ -273,7 +274,7 @@ export default function Login() {
         >
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
+              fontFamily: "Inter_600SemiBold",
               fontSize: 16,
               color: "#FFFFFF",
             }}
@@ -282,127 +283,37 @@ export default function Login() {
           </Text>
         </TouchableOpacity>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 24,
-          }}
-        >
-          <View
-            style={{ flex: 1, height: 1, backgroundColor: colors.inputBorder }}
-          />
+        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginBottom: 24 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.inputBorder }} />
           <Text
             style={{
-              fontFamily: "Poppins_400Regular",
+              fontFamily: "Inter_400Regular",
               fontSize: 14,
               color: colors.secondary,
               marginHorizontal: 16,
             }}
           >
-            Or continue with
+            OR
           </Text>
-          <View
-            style={{ flex: 1, height: 1, backgroundColor: colors.inputBorder }}
-          />
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.inputBorder }} />
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            marginBottom: 32,
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: colors.lightGray,
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 16,
-                color: colors.primary,
-              }}
-            >
-              G
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: colors.lightGray,
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 16,
-                color: colors.primary,
-              }}
-            >
-              f
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              backgroundColor: colors.lightGray,
-              alignItems: "center",
-              justifyContent: "center",
-              marginHorizontal: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 16,
-                color: colors.primary,
-              }}
-            >
-              in
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+        <View style={{ flexDirection: "row", justifyContent: "center", marginBottom: 24 }}>
           <Text
             style={{
-              fontFamily: "Poppins_400Regular",
+              fontFamily: "Inter_400Regular",
               fontSize: 14,
               color: colors.secondary,
-              marginRight: 4,
             }}
           >
-            Don't have an account?
+            Don't have an account?{" "}
           </Text>
           <TouchableOpacity onPress={handleSignUp}>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_600SemiBold",
                 fontSize: 14,
-                color: colors.footballGreen,
+                color: colors.primaryGreen,
               }}
             >
               Sign Up

@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Calendar, Building, DollarSign, User as UserIcon, Wrench } from "lucide-react-native";
+import { Home, Calendar, Building, DollarSign, User as UserIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "react-native";
 
@@ -65,13 +65,6 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="test-edit"
-        options={{
-          title: "Test Edit",
-          tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
         }}
       />
     </Tabs>

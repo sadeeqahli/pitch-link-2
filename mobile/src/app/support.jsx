@@ -19,10 +19,11 @@ import {
 import { useRouter } from "expo-router";
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 export default function SupportPage() {
   const insets = useSafeAreaInsets();
@@ -32,22 +33,22 @@ export default function SupportPage() {
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
 
   const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
   };
 
   const handleScroll = (event) => {
@@ -116,7 +117,7 @@ export default function SupportPage() {
         style={{
           paddingTop: insets.top + 20,
           paddingBottom: 20,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
           backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
@@ -137,8 +138,8 @@ export default function SupportPage() {
           </TouchableOpacity>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 20,
+              fontFamily: "Inter_700Bold",
+              fontSize: 28,
               color: colors.primary,
             }}
           >
@@ -154,12 +155,12 @@ export default function SupportPage() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           {/* Contact Support Section */}
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 18,
+              fontFamily: "Inter_600SemiBold",
+              fontSize: 20,
               color: colors.primary,
               marginBottom: 16,
             }}
@@ -207,16 +208,17 @@ export default function SupportPage() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
+                    fontFamily: "Inter_600SemiBold",
                     fontSize: 16,
                     color: colors.primary,
+                    marginBottom: 2,
                   }}
                 >
                   Call Support
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
+                    fontFamily: "Inter_400Regular",
                     fontSize: 14,
                     color: colors.secondary,
                   }}
@@ -224,6 +226,7 @@ export default function SupportPage() {
                   +234 803 123 4567
                 </Text>
               </View>
+              <ArrowLeft size={20} color={colors.secondary} style={{ transform: [{ rotate: "180deg" }] }} />
             </TouchableOpacity>
 
             {/* Email Support */}
@@ -241,7 +244,7 @@ export default function SupportPage() {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: colors.footballGreen,
+                  backgroundColor: colors.primaryGreen,
                   borderRadius: 20,
                   alignItems: "center",
                   justifyContent: "center",
@@ -253,16 +256,17 @@ export default function SupportPage() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
+                    fontFamily: "Inter_600SemiBold",
                     fontSize: 16,
                     color: colors.primary,
+                    marginBottom: 2,
                   }}
                 >
                   Email Support
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
+                    fontFamily: "Inter_400Regular",
                     fontSize: 14,
                     color: colors.secondary,
                   }}
@@ -270,6 +274,7 @@ export default function SupportPage() {
                   support@pitchowner.ng
                 </Text>
               </View>
+              <ArrowLeft size={20} color={colors.secondary} style={{ transform: [{ rotate: "180deg" }] }} />
             </TouchableOpacity>
 
             {/* WhatsApp Support */}
@@ -285,7 +290,7 @@ export default function SupportPage() {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: "#25D366",
+                  backgroundColor: colors.success,
                   borderRadius: 20,
                   alignItems: "center",
                   justifyContent: "center",
@@ -297,16 +302,17 @@ export default function SupportPage() {
               <View style={{ flex: 1 }}>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
+                    fontFamily: "Inter_600SemiBold",
                     fontSize: 16,
                     color: colors.primary,
+                    marginBottom: 2,
                   }}
                 >
                   WhatsApp Support
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
+                    fontFamily: "Inter_400Regular",
                     fontSize: 14,
                     color: colors.secondary,
                   }}
@@ -314,9 +320,172 @@ export default function SupportPage() {
                   Chat with our support team
                 </Text>
               </View>
+              <ArrowLeft size={20} color={colors.secondary} style={{ transform: [{ rotate: "180deg" }] }} />
             </TouchableOpacity>
           </View>
 
+          {/* FAQ Section */}
+          <Text
+            style={{
+              fontFamily: "Inter_600SemiBold",
+              fontSize: 20,
+              color: colors.primary,
+              marginBottom: 16,
+            }}
+          >
+            Frequently Asked Questions
+          </Text>
+
+          <View
+            style={{
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+              shadowColor: isDark ? "#000000" : "#000000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 16,
+                  color: colors.primary,
+                  marginBottom: 4,
+                }}
+              >
+                How do I add a new pitch?
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.secondary,
+                }}
+              >
+                Go to the Pitches tab and tap the + button to add a new pitch. Fill in the required details and save.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                paddingVertical: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 16,
+                  color: colors.primary,
+                  marginBottom: 4,
+                }}
+              >
+                How do I manage bookings?
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.secondary,
+                }}
+              >
+                Navigate to the Bookings tab to view, add, or edit bookings. You can filter by status and date.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                paddingVertical: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 16,
+                  color: colors.primary,
+                  marginBottom: 4,
+                }}
+              >
+                How do I view my earnings?
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.secondary,
+                }}
+              >
+                Go to the Payments tab to see your earnings, transaction history, and financial reports.
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Additional Support */}
+          <View
+            style={{
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 20,
+              shadowColor: isDark ? "#000000" : "#000000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 18,
+                color: colors.primary,
+                marginBottom: 12,
+              }}
+            >
+              Need More Help?
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 16,
+                lineHeight: 22,
+              }}
+            >
+              If you can't find what you're looking for, our support team is here to help. Contact us through any of the methods above and we'll get back to you as soon as possible.
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.primaryGreen,
+                borderRadius: 12,
+                paddingVertical: 16,
+                alignItems: "center",
+              }}
+              onPress={() => handleContactSupport("email")}
+            >
+              <Text
+                style={{
+                  fontFamily: "Inter_600SemiBold",
+                  fontSize: 16,
+                  color: "#FFFFFF",
+                }}
+              >
+                Contact Support Team
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </View>

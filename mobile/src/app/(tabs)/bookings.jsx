@@ -26,10 +26,11 @@ import { bookingsStorage } from "../../utils/bookingStorage";
 import { useRouter } from "expo-router";
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 
 
@@ -48,24 +49,24 @@ export default function Bookings() {
   const allBookings = bookings;
 
   const [fontsLoaded, fontLoadErrorResult] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
   };
 
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function Bookings() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_600SemiBold",
                 fontSize: 18,
                 color: colors.primary,
                 marginBottom: 4,
@@ -169,9 +170,9 @@ export default function Bookings() {
             </Text>
             <Text
               style={{
-                fontFamily: "Poppins_500Medium",
+                fontFamily: "Inter_500Medium",
                 fontSize: 14,
-                color: colors.footballGreen,
+                color: colors.primaryGreen,
                 marginBottom: 8,
               }}
             >
@@ -181,9 +182,9 @@ export default function Bookings() {
           <View style={{ alignItems: "flex-end" }}>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_700Bold",
                 fontSize: 18,
-                color: colors.footballGreen,
+                color: colors.primaryGreen,
                 marginBottom: 4,
               }}
             >
@@ -196,132 +197,99 @@ export default function Bookings() {
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 12,
-                backgroundColor: getStatusColor(booking.payment_status),
+                backgroundColor: getStatusColor(booking.payment_status) + "20",
               }}
             >
-              <StatusIcon size={12} color="#FFFFFF" />
+              <StatusIcon size={16} color={getStatusColor(booking.payment_status)} />
               <Text
                 style={{
-                  fontFamily: "Poppins_500Medium",
-                  fontSize: 10,
-                  color: "#FFFFFF",
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 12,
+                  color: getStatusColor(booking.payment_status),
                   marginLeft: 4,
                   textTransform: "capitalize",
                 }}
               >
-                {booking.payment_status || "pending"}
+                {booking.payment_status}
               </Text>
             </View>
           </View>
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
-          <Calendar size={16} color={colors.secondary} />
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+          <Calendar size={16} color={colors.secondary} style={{ marginRight: 8 }} />
           <Text
             style={{
-              fontFamily: "Poppins_400Regular",
+              fontFamily: "Inter_400Regular",
               fontSize: 14,
-              color: colors.secondary,
-              marginLeft: 8,
+              color: colors.primary,
             }}
           >
-            {new Date(booking.booking_date).toLocaleDateString("en-GB", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {new Date(booking.booking_date).toLocaleDateString()} • {booking.start_time} - {booking.end_time}
           </Text>
         </View>
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
-          <Clock size={16} color={colors.secondary} />
-          <Text
-            style={{
-              fontFamily: "Poppins_400Regular",
-              fontSize: 14,
-              color: colors.secondary,
-              marginLeft: 8,
-            }}
-          >
-            {booking.start_time} - {booking.end_time}
-          </Text>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
-          <MapPin size={16} color={colors.secondary} />
-          <Text
-            style={{
-              fontFamily: "Poppins_400Regular",
-              fontSize: 14,
-              color: colors.secondary,
-              marginLeft: 8,
-            }}
-          >
-            {booking.pitch_location || "Location not specified"}
-          </Text>
-        </View>
-
-        {booking.player_phone && (
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Phone size={16} color={colors.secondary} />
-            <Text
-              style={{
-                fontFamily: "Poppins_400Regular",
-                fontSize: 14,
-                color: colors.secondary,
-                marginLeft: 8,
-              }}
-            >
-              {booking.player_phone}
-            </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <User size={16} color={colors.secondary} style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.primary,
+                }}
+              >
+                {booking.player_name}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Phone size={16} color={colors.secondary} style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.primary,
+                }}
+              >
+                {booking.player_phone}
+              </Text>
+            </View>
           </View>
-        )}
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <Mail size={16} color={colors.secondary} style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.primary,
+                }}
+              >
+                {booking.player_email}
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <MapPin size={16} color={colors.secondary} style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.primary,
+                }}
+              >
+                Pitch {booking.pitch_id}
+              </Text>
+            </View>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
 
-  const FilterButton = ({ title, value, count }) => (
-    <TouchableOpacity
-      style={{
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor:
-          selectedFilter === value ? colors.footballGreen : colors.lightGray,
-        marginRight: 12,
-      }}
-      onPress={() => setSelectedFilter(value)}
-    >
-      <Text
-        style={{
-          fontFamily: "Poppins_500Medium",
-          fontSize: 14,
-          color: selectedFilter === value ? "#FFFFFF" : colors.primary,
-        }}
-      >
-        {title} {count !== undefined && `(${count})`}
-      </Text>
-    </TouchableOpacity>
-  );
+  const filteredBookings = selectedFilter === "all" 
+    ? allBookings 
+    : allBookings.filter(booking => booking.payment_status === selectedFilter);
 
   if (!fontsLoaded && !fontLoadError) {
     return (
@@ -333,7 +301,7 @@ export default function Bookings() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading fonts...
         </Text>
@@ -346,7 +314,6 @@ export default function Bookings() {
     console.log("Using system fonts due to font loading error");
   }
 
-  // Remove loading state since we're using mock data
   if (loading) {
     return (
       <View
@@ -357,7 +324,7 @@ export default function Bookings() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading bookings...
         </Text>
@@ -365,136 +332,104 @@ export default function Bookings() {
     );
   }
 
-  // Calculate filter counts
-  const todayBookings = allBookings?.filter((b) =>
-    b.booking_date.startsWith(new Date().toISOString().split("T")[0]),
-  ) || [];
-  const upcomingBookings = allBookings?.filter(
-    (b) => b.booking_date >= new Date().toISOString().split("T")[0],
-  ) || [];
-  const pendingBookings = allBookings?.filter(
-    (b) => b.payment_status === "pending",
-  ) || [];
-
   return (
-    <View style={{ flex: 1, backgroundColor: colors.lightGray }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-
-      {/* Background pattern */}
-      <View
-        style={{
-          position: "absolute",
-          top: -100,
-          left: -50,
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          backgroundColor: colors.footballGreen,
-          opacity: 0.1,
-        }}
-      />
-
+      
       {/* Header */}
       <View
         style={{
-          backgroundColor: colors.white,
           paddingTop: insets.top + 12,
           paddingBottom: 16,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
+          backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
-          zIndex: 1000,
+          shadowColor: showHeaderBorder ? (isDark ? "#000000" : "#000000") : "transparent",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: showHeaderBorder ? (isDark ? 0.3 : 0.1) : 0,
+          shadowRadius: showHeaderBorder ? 8 : 0,
+          elevation: showHeaderBorder ? 3 : 0,
+          zIndex: 10,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View>
-            <Text
-              style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 24,
-                color: colors.primary,
-              }}
-            >
-              Bookings
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Poppins_400Regular",
-                fontSize: 14,
-                color: colors.secondary,
-              }}
-            >
-              Manage your pitch bookings
-            </Text>
-          </View>
-
-          {/* Add Manual Booking Button */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 28,
+              color: colors.primary,
+            }}
+          >
+            Bookings
+          </Text>
+          
           <TouchableOpacity
             style={{
-              backgroundColor: colors.footballGreen,
-              borderRadius: 12,
-              padding: 10,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.lightGray,
+              alignItems: "center",
+              justifyContent: "center",
             }}
-            onPress={() => router.push("../add-booking")}
+            onPress={() => router.push("/add-booking")}
           >
-            <Plus size={20} color="#FFFFFF" />
+            <Plus size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.footballGreen}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primaryGreen} />
         }
       >
-        {/* Filter buttons */
-        }
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingTop: 20,
-            paddingBottom: 8,
-          }}
-        >
-          <FilterButton title="All" value="all" count={allBookings?.length || 0} />
-          <FilterButton
-            title="Today"
-            value="today"
-            count={todayBookings.length}
-          />
-          <FilterButton
-            title="Upcoming"
-            value="upcoming"
-            count={upcomingBookings.length}
-          />
-          <FilterButton
-            title="Pending"
-            value="pending"
-            count={pendingBookings.length}
-          />
-        </ScrollView>
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
+          {/* Filter Tabs */}
+          <View
+            style={{
+              flexDirection: "row",
+              backgroundColor: colors.lightGray,
+              borderRadius: 16,
+              padding: 4,
+              marginBottom: 24,
+            }}
+          >
+            {["all", "confirmed", "pending", "cancelled"].map((filter) => (
+              <TouchableOpacity
+                key={filter}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: selectedFilter === filter ? colors.primaryGreen : "transparent",
+                  alignItems: "center",
+                }}
+                onPress={() => setSelectedFilter(filter)}
+              >
+                <Text
+                  style={{
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 14,
+                    color: selectedFilter === filter ? colors.white : colors.secondary,
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {filter === "all" ? "All Bookings" : filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Bookings list */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
-          {bookings?.length > 0 ? (
-            bookings.map((booking) => (
+          {/* Bookings List */}
+          {filteredBookings.length > 0 ? (
+            filteredBookings.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))
           ) : (
@@ -507,49 +442,49 @@ export default function Bookings() {
                 justifyContent: "center",
               }}
             >
-              <Calendar size={48} color={colors.secondary} />
+              <Calendar size={40} color={colors.secondary} />
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 18,
                   color: colors.primary,
                   marginTop: 16,
                   textAlign: "center",
                 }}
               >
-                No Bookings Found
+                No {selectedFilter === "all" ? "" : selectedFilter} bookings
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
+                  fontFamily: "Inter_400Regular",
                   fontSize: 14,
                   color: colors.secondary,
                   textAlign: "center",
                   marginTop: 8,
                 }}
               >
-                {selectedFilter === "all"
-                  ? "You don't have any bookings yet"
-                  : `No ${selectedFilter} bookings found`}
+                {selectedFilter === "all" 
+                  ? "You don't have any bookings yet." 
+                  : `You don't have any ${selectedFilter} bookings.`}
               </Text>
               <TouchableOpacity
                 style={{
-                  backgroundColor: colors.footballGreen,
+                  backgroundColor: colors.primaryGreen,
                   borderRadius: 12,
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
+                  paddingVertical: 12,
+                  paddingHorizontal: 24,
                   marginTop: 16,
                 }}
-                onPress={() => router.push("../add-booking")}
+                onPress={() => router.push("/add-booking")}
               >
                 <Text
                   style={{
-                    fontFamily: "Poppins_600SemiBold",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 16,
                     color: "#FFFFFF",
                   }}
                 >
-                  Add Manual Booking
+                  Add Booking
                 </Text>
               </TouchableOpacity>
             </View>

@@ -21,6 +21,13 @@ import {
 import { useRouter } from "expo-router";
 import { toast } from "sonner-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 export default function AddPitch() {
   const insets = useSafeAreaInsets();
@@ -29,6 +36,12 @@ export default function AddPitch() {
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
 
   // Form state
   const [pitchName, setPitchName] = useState("");
@@ -37,17 +50,16 @@ export default function AddPitch() {
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
     inputBorder: isDark ? "#374151" : "#D1D5DB",
-    inputFocus: "#00CC66",
+    inputFocus: "#00FF88",
   };
 
   useEffect(() => {
@@ -61,19 +73,11 @@ export default function AddPitch() {
 
   const handleSubmit = async () => {
     console.log("Form data:", { pitchName, location, pricePerHour });
-    
-    if (!pitchName || !pitchName.trim()) {
-      Alert.alert("Error", "Please enter a pitch name");
-      return;
-    }
+    const allFieldsFilled =
+      pitchName.trim() && location.trim() && pricePerHour.trim();
 
-    if (!location || !location.trim()) {
-      Alert.alert("Error", "Please enter a location");
-      return;
-    }
-
-    if (!pricePerHour || !pricePerHour.trim()) {
-      Alert.alert("Error", "Please enter a price per hour");
+    if (!allFieldsFilled) {
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
@@ -119,7 +123,7 @@ export default function AddPitch() {
       toast.success("Pitch added successfully!");
 
       // Navigate back to dashboard
-      router.push("/(tabs)/dashboard");
+      router.push("/dashboard");
     } catch (error) {
       console.error("Error creating pitch:", error);
       Alert.alert("Error", "Failed to create pitch. Please try again.");
@@ -129,7 +133,7 @@ export default function AddPitch() {
   };
 
   const handleCancel = () => {
-    router.push("/(tabs)/dashboard");
+    router.push("/dashboard");
   };
 
   const InputField = ({
@@ -143,7 +147,7 @@ export default function AddPitch() {
     <View style={{ marginBottom: 20 }}>
       <Text
         style={{
-          fontWeight: "500",
+          fontFamily: "Inter_500Medium",
           fontSize: 16,
           color: colors.primary,
           marginBottom: 8,
@@ -167,6 +171,7 @@ export default function AddPitch() {
         <TextInput
           style={{
             flex: 1,
+            fontFamily: "Inter_400Regular",
             fontSize: 16,
             color: colors.primary,
           }}
@@ -180,6 +185,14 @@ export default function AddPitch() {
     </View>
   );
 
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.white }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   // Always render the content - use system fonts if custom fonts aren't loaded
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -190,7 +203,7 @@ export default function AddPitch() {
         style={{
           paddingTop: insets.top + 12,
           paddingBottom: 16,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
           backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
@@ -211,8 +224,8 @@ export default function AddPitch() {
           </TouchableOpacity>
           <Text
             style={{
-              fontWeight: "600",
-              fontSize: 20,
+              fontFamily: "Inter_700Bold",
+              fontSize: 28,
               color: colors.primary,
             }}
           >
@@ -228,9 +241,10 @@ export default function AddPitch() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           <Text
             style={{
+              fontFamily: "Inter_500Medium",
               fontSize: 16,
               color: colors.secondary,
               marginBottom: 24,
@@ -280,7 +294,7 @@ export default function AddPitch() {
             >
               <Text
                 style={{
-                  fontWeight: "600",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 16,
                   color: colors.primary,
                 }}
@@ -292,7 +306,7 @@ export default function AddPitch() {
             <TouchableOpacity
               style={{
                 flex: 1,
-                backgroundColor: submitting ? colors.secondary : colors.footballGreen,
+                backgroundColor: submitting ? colors.secondary : colors.primaryGreen,
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: "center",
@@ -305,7 +319,7 @@ export default function AddPitch() {
               <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Text
                 style={{
-                  fontWeight: "600",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 16,
                   color: "#FFFFFF",
                 }}

@@ -27,6 +27,13 @@ import {
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 export default function Pitches() {
   const insets = useSafeAreaInsets();
@@ -37,23 +44,36 @@ export default function Pitches() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pitches, setPitches] = useState([]);
+  const [fontsLoaded, fontLoadErrorResult] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
-    footballDark: "#059142",
+    primaryGreen: "#00FF88",
   };
 
   useEffect(() => {
     loadPitches();
-  }, []);
+    
+    // Check for font loading errors
+    if (fontLoadErrorResult) {
+      setFontLoadError(true);
+      console.log("Font loading error:", fontLoadErrorResult);
+    }
+  }, [fontLoadErrorResult]);
 
   const loadPitches = async () => {
     try {
@@ -148,7 +168,7 @@ export default function Pitches() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontWeight: "600",
+                fontFamily: "Inter_600SemiBold",
                 fontSize: 18,
                 color: colors.primary,
                 marginBottom: 4,
@@ -160,6 +180,7 @@ export default function Pitches() {
               <MapPin size={14} color={colors.secondary} />
               <Text
                 style={{
+                  fontFamily: "Inter_400Regular",
                   fontSize: 14,
                   color: colors.secondary,
                   marginLeft: 4,
@@ -185,7 +206,7 @@ export default function Pitches() {
               )}
               <Text
                 style={{
-                  fontWeight: "500",
+                  fontFamily: "Inter_500Medium",
                   fontSize: 12,
                   color: pitch.is_active ? colors.success : colors.error,
                   marginLeft: 4,
@@ -199,144 +220,71 @@ export default function Pitches() {
               onValueChange={() => togglePitchStatus(pitch._id, pitch.is_active)}
               trackColor={{
                 false: colors.lightGray,
-                true: colors.footballGreen,
+                true: colors.success,
               }}
-              thumbColor={pitch.is_active ? "#FFFFFF" : "#f4f3f4"}
+              thumbColor={colors.white}
             />
           </View>
         </View>
 
-        {/* Description */}
-        {pitch.description && (
-          <Text
-            style={{
-              fontSize: 14,
-              color: colors.secondary,
-              marginBottom: 16,
-              lineHeight: 20,
-            }}
-            numberOfLines={2}
-          >
-            {pitch.description}
-          </Text>
-        )}
-
-        {/* Price and amenities */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <DollarSign size={16} color={colors.footballGreen} />
-            <Text
-              style={{
-                fontWeight: "600",
-                fontSize: 18,
-                color: colors.footballGreen,
-                marginLeft: 4,
-              }}
-            >
-              NGN{parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hour
-            </Text>
-          </View>
-
-          {pitch.amenities && pitch.amenities.length > 0 && (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Users size={14} color={colors.secondary} />
+        {/* Pitch Details */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 16 }}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <DollarSign size={16} color={colors.secondary} style={{ marginRight: 4 }} />
               <Text
                 style={{
-                  fontSize: 12,
-                  color: colors.secondary,
-                  marginLeft: 4,
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 14,
+                  color: colors.primary,
                 }}
               >
-                {pitch.amenities.length} amenities
+                ₦{parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hr
               </Text>
             </View>
-          )}
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Users size={16} color={colors.secondary} style={{ marginRight: 4 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.secondary,
+                }}
+              >
+                {pitch.capacity || 0} players
+              </Text>
+            </View>
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <Star size={16} color={colors.secondary} style={{ marginRight: 4 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_500Medium",
+                  fontSize: 14,
+                  color: colors.primary,
+                }}
+              >
+                {pitch.rating || 0}/5
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Building size={16} color={colors.secondary} style={{ marginRight: 4 }} />
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  color: colors.secondary,
+                }}
+              >
+                {pitch.type || "Standard"}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* Amenities tags */}
-        {pitch.amenities && pitch.amenities.length > 0 && (
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
-          >
-            {pitch.amenities.slice(0, 3).map((amenity, index) => (
-              <View
-                key={index}
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  marginRight: 8,
-                  marginBottom: 4,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.secondary,
-                  }}
-                >
-                  {amenity}
-                </Text>
-              </View>
-            ))}
-            {pitch.amenities.length > 3 && (
-              <View
-                style={{
-                  backgroundColor: colors.footballGreen,
-                  borderRadius: 12,
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                }}
-              >
-                <Text
-                  style={{
-                    fontWeight: "500",
-                    fontSize: 12,
-                    color: "#FFFFFF",
-                  }}
-                >
-                  +{pitch.amenities.length - 3} more
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Action buttons */}
+        {/* Action Buttons */}
         <View style={{ flexDirection: "row", gap: 12 }}>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              backgroundColor: colors.footballGreen,
-              borderRadius: 12,
-              paddingVertical: 12,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-            }}
-            onPress={() => router.push(`/simple-edit-pitch?id=${pitch._id}`)}
-          >
-            <Edit size={16} color="#FFFFFF" />
-            <Text
-              style={{
-                fontWeight: "600",
-                fontSize: 14,
-                color: "#FFFFFF",
-                marginLeft: 8,
-              }}
-            >
-              Edit Pitch
-            </Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={{
               flex: 1,
@@ -344,21 +292,37 @@ export default function Pitches() {
               borderRadius: 12,
               paddingVertical: 12,
               alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
             }}
-            onPress={() => router.push(`/pitch-analytics?id=${pitch._id}`)}
+            onPress={() => router.push(`/edit-pitch?id=${pitch._id}`)}
           >
-            <Star size={16} color={colors.primary} />
             <Text
               style={{
-                fontWeight: "600",
+                fontFamily: "Inter_500Medium",
                 fontSize: 14,
                 color: colors.primary,
-                marginLeft: 8,
               }}
             >
-              Analytics
+              Edit
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: colors.primaryGreen,
+              borderRadius: 12,
+              paddingVertical: 12,
+              alignItems: "center",
+            }}
+            onPress={() => router.push(`/simple-edit-pitch?id=${pitch._id}`)}
+          >
+            <Text
+              style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: "#FFFFFF",
+              }}
+            >
+              Quick Edit
             </Text>
           </TouchableOpacity>
         </View>
@@ -366,18 +330,40 @@ export default function Pitches() {
     </View>
   );
 
-  // Show loading indicator while pitches are loading
+  if (!fontsLoaded && !fontLoadError) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.white,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
+        <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
+          Loading fonts...
+        </Text>
+      </View>
+    );
+  }
+
+  // If there's a font loading error, continue with system fonts
+  if (fontLoadError) {
+    console.log("Using system fonts due to font loading error");
+  }
+
   if (loading) {
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: colors.lightGray,
+          backgroundColor: colors.white,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading pitches...
         </Text>
@@ -386,161 +372,163 @@ export default function Pitches() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.lightGray }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-
-      {/* Background pattern */}
-      <View
-        style={{
-          position: "absolute",
-          top: -100,
-          right: -50,
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          backgroundColor: colors.footballGreen,
-          opacity: 0.1,
-        }}
-      />
-
+      
       {/* Header */}
       <View
         style={{
-          backgroundColor: colors.white,
           paddingTop: insets.top + 12,
           paddingBottom: 16,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
+          backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
-          zIndex: 1000,
+          shadowColor: showHeaderBorder ? (isDark ? "#000000" : "#000000") : "transparent",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: showHeaderBorder ? (isDark ? 0.3 : 0.1) : 0,
+          shadowRadius: showHeaderBorder ? 8 : 0,
+          elevation: showHeaderBorder ? 3 : 0,
+          zIndex: 10,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View>
-            <Text
-              style={{
-                fontWeight: "600",
-                fontSize: 24,
-                color: colors.primary,
-              }}
-            >
-              My Pitches
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: colors.secondary,
-              }}
-            >
-              Manage your football pitches
-            </Text>
-          </View>
-
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 28,
+              color: colors.primary,
+            }}
+          >
+            Pitches
+          </Text>
+          
           <TouchableOpacity
             style={{
-              backgroundColor: colors.footballGreen,
-              borderRadius: 12,
-              padding: 10,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.lightGray,
+              alignItems: "center",
+              justifyContent: "center",
             }}
             onPress={() => router.push("/add-pitch")}
           >
-            <Plus size={20} color="#FFFFFF" />
+            <Plus size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.footballGreen}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primaryGreen} />
         }
       >
-        {/* Pitches list */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
-          {pitches?.length > 0 ? (
-            <>
-              {/* Summary stats */}
-              <View style={{ flexDirection: "row", marginBottom: 24, gap: 12 }}>
-                <View
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
+          {/* Stats Overview */}
+          <View
+            style={{
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+              shadowColor: isDark ? "#000000" : "#000000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 18,
+                color: colors.primary,
+                marginBottom: 16,
+              }}
+            >
+              Pitch Overview
+            </Text>
+            
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <View style={{ alignItems: "center" }}>
+                <Text
                   style={{
-                    flex: 1,
-                    backgroundColor: colors.cardBg,
-                    borderRadius: 16,
-                    padding: 20,
-                    alignItems: "center",
+                    fontFamily: "Inter_700Bold",
+                    fontSize: 24,
+                    color: colors.primary,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 24,
-                      color: colors.footballGreen,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {pitches.filter((p) => p.is_active).length}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: colors.secondary,
-                      textAlign: "center",
-                    }}
-                  >
-                    Active Pitches
-                  </Text>
-                </View>
-
-                <View
+                  {pitches.length}
+                </Text>
+                <Text
                   style={{
-                    flex: 1,
-                    backgroundColor: colors.cardBg,
-                    borderRadius: 16,
-                    padding: 20,
-                    alignItems: "center",
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
+                    color: colors.secondary,
+                    marginTop: 4,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 24,
-                      color: colors.primary,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {pitches.length}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: colors.secondary,
-                      textAlign: "center",
-                    }}
-                  >
-                    Total Pitches
-                  </Text>
-                </View>
+                  Total Pitches
+                </Text>
               </View>
+              
+              <View style={{ alignItems: "center" }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_700Bold",
+                    fontSize: 24,
+                    color: colors.success,
+                  }}
+                >
+                  {pitches.filter(p => p.is_active).length}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
+                    color: colors.secondary,
+                    marginTop: 4,
+                  }}
+                >
+                  Active
+                </Text>
+              </View>
+              
+              <View style={{ alignItems: "center" }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_700Bold",
+                    fontSize: 24,
+                    color: colors.error,
+                  }}
+                >
+                  {pitches.filter(p => !p.is_active).length}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
+                    color: colors.secondary,
+                    marginTop: 4,
+                  }}
+                >
+                  Inactive
+                </Text>
+              </View>
+            </View>
+          </View>
 
-              {/* Pitches */}
-              {pitches.map((pitch) => (
-                <PitchCard key={pitch._id} pitch={pitch} />
-              ))}
-            </>
+          {/* Pitches List */}
+          {pitches.length > 0 ? (
+            pitches.map((pitch) => (
+              <PitchCard key={pitch._id} pitch={pitch} />
+            ))
           ) : (
             <View
               style={{
@@ -551,10 +539,10 @@ export default function Pitches() {
                 justifyContent: "center",
               }}
             >
-              <Building size={48} color={colors.secondary} />
+              <Building size={40} color={colors.secondary} />
               <Text
                 style={{
-                  fontWeight: "600",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 18,
                   color: colors.primary,
                   marginTop: 16,
@@ -565,36 +553,33 @@ export default function Pitches() {
               </Text>
               <Text
                 style={{
+                  fontFamily: "Inter_400Regular",
                   fontSize: 14,
                   color: colors.secondary,
                   textAlign: "center",
                   marginTop: 8,
-                  marginBottom: 16,
                 }}
               >
-                Add your first football pitch to start receiving bookings
+                Add your first pitch to get started
               </Text>
               <TouchableOpacity
                 style={{
-                  backgroundColor: colors.footballGreen,
+                  backgroundColor: colors.primaryGreen,
                   borderRadius: 12,
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
+                  paddingVertical: 12,
+                  paddingHorizontal: 24,
+                  marginTop: 16,
                 }}
                 onPress={() => router.push("/add-pitch")}
               >
-                <Plus size={16} color="#FFFFFF" />
                 <Text
                   style={{
-                    fontWeight: "600",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 16,
                     color: "#FFFFFF",
-                    marginLeft: 8,
                   }}
                 >
-                  Add First Pitch
+                  Add Pitch
                 </Text>
               </TouchableOpacity>
             </View>
