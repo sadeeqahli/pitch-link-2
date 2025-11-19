@@ -76,7 +76,7 @@ export default function Payments() {
         },
         recentActivity: [
           { 
-            id: 1, 
+            id: "1", 
             player_name: "John Doe", 
             pitch_name: "Main Football Pitch",
             total_amount: 15000, 
@@ -84,7 +84,7 @@ export default function Payments() {
             payment_status: "completed" 
           },
           { 
-            id: 2, 
+            id: "2", 
             player_name: "Jane Smith", 
             pitch_name: "Basketball Court",
             total_amount: 20000, 
@@ -92,7 +92,7 @@ export default function Payments() {
             payment_status: "pending" 
           },
           { 
-            id: 3, 
+            id: "3", 
             player_name: "Mike Johnson", 
             pitch_name: "Tennis Court",
             total_amount: 18000, 
@@ -100,7 +100,7 @@ export default function Payments() {
             payment_status: "completed" 
           },
           { 
-            id: 4, 
+            id: "4", 
             player_name: "Sarah Williams", 
             pitch_name: "Volleyball Court",
             total_amount: 22000, 
@@ -273,7 +273,14 @@ export default function Payments() {
           marginBottom: 12,
           flexDirection: "row",
           alignItems: "center",
+          shadowColor: isDark ? "#000000" : "#000000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.3 : 0.1,
+          shadowRadius: 8,
+          elevation: 3,
         }}
+        onPress={() => router.push(`/booking-receipt?id=${transaction.id}`)}
+        activeOpacity={0.8}
       >
         <View
           style={{
@@ -481,22 +488,145 @@ export default function Payments() {
               Earnings Overview
             </Text>
             
-            <View style={{ flexDirection: "row", gap: 16 }}>
-              <FinancialCard
-                title="Today"
-                amount={financialData?.earnings.today || 0}
-                change="+12% from yesterday"
-                icon={DollarSign}
-                trend="up"
-              />
+            {/* Two small bars next to each other like in dashboard */}
+            <View style={{ flexDirection: "row", gap: 16, marginBottom: 16 }}>
+              <View
+                style={{
+                  backgroundColor: colors.cardBg,
+                  borderRadius: 16,
+                  padding: 16,
+                  flex: 1,
+                  shadowColor: isDark ? "#000000" : "#000000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.3 : 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <View>
+                    <Text
+                      style={{
+                        fontFamily: "Inter_500Medium",
+                        fontSize: 14,
+                        color: colors.secondary,
+                        marginBottom: 8,
+                      }}
+                    >
+                      Today
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: "Inter_700Bold",
+                        fontSize: 20,
+                        color: colors.primary,
+                      }}
+                    >
+                      ₦{financialData?.earnings.today.toLocaleString() || 0}
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginTop: 8,
+                      }}
+                    >
+                      <TrendingUp size={14} color={colors.success} />
+                      <Text
+                        style={{
+                          fontFamily: "Inter_500Medium",
+                          fontSize: 12,
+                          color: colors.success,
+                          marginLeft: 4,
+                        }}
+                      >
+                        +12% from yesterday
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: colors.primaryGreen + "20",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <DollarSign size={18} color={colors.primaryGreen} />
+                  </View>
+                </View>
+              </View>
               
-              <FinancialCard
-                title="This Week"
-                amount={financialData?.earnings.weekly || 0}
-                change="+8% from last week"
-                icon={TrendingUp}
-                trend="up"
-              />
+              <View
+                style={{
+                  backgroundColor: colors.cardBg,
+                  borderRadius: 16,
+                  padding: 16,
+                  flex: 1,
+                  shadowColor: isDark ? "#000000" : "#000000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.3 : 0.1,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <View>
+                    <Text
+                      style={{
+                        fontFamily: "Inter_500Medium",
+                        fontSize: 14,
+                        color: colors.secondary,
+                        marginBottom: 8,
+                      }}
+                    >
+                      This Week
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: "Inter_700Bold",
+                        fontSize: 20,
+                        color: colors.primary,
+                      }}
+                    >
+                      ₦{financialData?.earnings.weekly.toLocaleString() || 0}
+                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginTop: 8,
+                      }}
+                    >
+                      <TrendingUp size={14} color={colors.success} />
+                      <Text
+                        style={{
+                          fontFamily: "Inter_500Medium",
+                          fontSize: 12,
+                          color: colors.success,
+                          marginLeft: 4,
+                        }}
+                      >
+                        +8% from last week
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: colors.primaryGreen + "20",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TrendingUp size={18} color={colors.primaryGreen} />
+                  </View>
+                </View>
+              </View>
             </View>
             
             <FinancialCard
@@ -518,7 +648,7 @@ export default function Payments() {
               marginBottom: 24,
             }}
           >
-            {["all", "completed", "pending", "failed"].map((filter) => (
+            {['all', 'completed', 'pending', 'failed'].map((filter) => (
               <TouchableOpacity
                 key={filter}
                 style={{
@@ -527,6 +657,7 @@ export default function Payments() {
                   borderRadius: 12,
                   backgroundColor: selectedFilter === filter ? colors.primaryGreen : "transparent",
                   alignItems: "center",
+                  justifyContent: "center",
                 }}
                 onPress={() => setSelectedFilter(filter)}
               >
@@ -536,6 +667,7 @@ export default function Payments() {
                     fontSize: 14,
                     color: selectedFilter === filter ? colors.white : colors.secondary,
                     textTransform: "capitalize",
+                    textAlign: "center",
                   }}
                 >
                   {filter === "all" ? "All Transactions" : filter}

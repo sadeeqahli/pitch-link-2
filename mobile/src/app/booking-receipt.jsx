@@ -490,12 +490,12 @@ export default function BookingReceipt() {
               <View
                 style={{
                   flexDirection: "row",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   paddingVertical: 8,
                 }}
               >
-                <Mail size={20} color={colors.secondary} style={{ marginRight: 12 }} />
-                <View>
+                <Mail size={20} color={colors.secondary} style={{ marginRight: 12, marginTop: 2 }} />
+                <View style={{ flex: 1, marginRight: 8 }}>
                   <Text
                     style={{
                       fontFamily: "Poppins_500Medium",
@@ -509,9 +509,12 @@ export default function BookingReceipt() {
                   <Text
                     style={{
                       fontFamily: "Poppins_400Regular",
-                      fontSize: 16,
+                      fontSize: 14,
                       color: colors.primary,
+                      flexWrap: "wrap",
+                      flexShrink: 1,
                     }}
+                    numberOfLines={2}
                   >
                     {booking.player_email}
                   </Text>
