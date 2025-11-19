@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -75,7 +75,7 @@ export default function Pitches() {
     }
   }, [fontLoadErrorResult]);
 
-  const loadPitches = async () => {
+  const loadPitches = useCallback(async () => {
     try {
       setLoading(true);
       const storedPitches = await AsyncStorage.getItem('pitches');
@@ -93,20 +93,20 @@ export default function Pitches() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadPitches();
     setRefreshing(false);
-  };
+  }, [loadPitches]);
 
-  const handleScroll = (event) => {
+  const handleScroll = useCallback((event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowHeaderBorder(scrollY > 0);
-  };
+  }, []);
 
-  const togglePitchStatus = async (pitchId, currentStatus) => {
+  const togglePitchStatus = useCallback(async (pitchId, currentStatus) => {
     try {
       // Update the pitch status in the local state
       const updatedPitches = pitches.map(pitch => 
@@ -129,9 +129,13 @@ export default function Pitches() {
       // Reload pitches to revert the change in case of error
       loadPitches();
     }
-  };
+  }, [pitches, loadPitches]);
 
-  const PitchCard = ({ pitch }) => (
+  const handleAddPitch = useCallback(() => {
+    router.push("/add-pitch");
+  }, [router]);
+
+  const PitchCard = useCallback(({ pitch }) => (
     <View
       style={{
         backgroundColor: colors.cardBg,
@@ -328,7 +332,7 @@ export default function Pitches() {
         </View>
       </View>
     </View>
-  );
+  ), [colors, isDark, router, togglePitchStatus]);
 
   if (!fontsLoaded && !fontLoadError) {
     return (
@@ -412,7 +416,7 @@ export default function Pitches() {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onPress={() => router.push("/add-pitch")}
+            onPress={handleAddPitch}
           >
             <Plus size={20} color={colors.primary} />
           </TouchableOpacity>
@@ -570,7 +574,7 @@ export default function Pitches() {
                   paddingHorizontal: 24,
                   marginTop: 16,
                 }}
-                onPress={() => router.push("/add-pitch")}
+                onPress={handleAddPitch}
               >
                 <Text
                   style={{

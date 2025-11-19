@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import {
   X,
   Eye,
   EyeOff,
+  Trash2,
 } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
@@ -33,6 +34,7 @@ import {
   Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditPitch() {
   const insets = useSafeAreaInsets();
@@ -42,7 +44,7 @@ export default function EditPitch() {
   const isDark = colorScheme === "dark";
   const [showHeaderBorder, setShowHeaderBorder] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [fontLoadError, setFontLoadError] = useState(false);
 
   // Form state
@@ -78,7 +80,7 @@ export default function EditPitch() {
     return () => clearTimeout(timer);
   }, []);
 
-  const colors = {
+  const colors = useMemo(() => ({
     primary: isDark ? "#FFFFFF" : "#000000",
     secondary: isDark ? "#CCCCCC" : "#6B7280",
     lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
@@ -91,51 +93,43 @@ export default function EditPitch() {
     footballDark: "#059142",
     inputBorder: isDark ? "#374151" : "#D1D5DB",
     inputFocus: "#00CC66",
-  };
+  }), [isDark]);
 
-  // Mock data for demonstration - REPLACE THIS WITH REAL DATA FETCHING
+  // Fetch pitch data
   useEffect(() => {
     if (id) {
-      // In a real app, you would fetch the actual pitch data from your backend
-      // For now, we'll keep the mock data but you should replace this with:
-      // fetchPitchData(id).then(data => {
-      //   setPitchName(data.name);
-      //   setLocation(data.location);
-      //   setPricePerHour(data.price_per_hour.toString());
-      //   setDescription(data.description);
-      //   setAmenities(data.amenities);
-      //   setImage(data.photos[0]);
-      //   setIsActive(data.is_active);
-      // });
-      
-      // Simulate fetching pitch data
-      const mockPitch = {
-        id: parseInt(id),
-        name: "Main Football Pitch",
-        location: "123 Sports Avenue, Lagos",
-        price_per_hour: "8000",
-        description: "Professional football pitch with floodlights and changing rooms",
-        amenities: ["Floodlights", "Changing Rooms", "Parking", "Showers"],
-        photos: ["https://images.unsplash.com/photo-1540442588252-6b93036098a8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"],
-        is_active: true
-      };
-      
-      setPitchName(mockPitch.name);
-      setLocation(mockPitch.location);
-      setPricePerHour(mockPitch.price_per_hour.toString());
-      setDescription(mockPitch.description);
-      setAmenities(mockPitch.amenities);
-      setImage(mockPitch.photos[0]);
-      setIsActive(mockPitch.is_active);
+      loadPitchData();
     }
   }, [id]);
 
-  const handleScroll = (event) => {
+  const loadPitchData = useCallback(async () => {
+    try {
+      const storedPitches = await AsyncStorage.getItem('pitches');
+      if (storedPitches) {
+        const pitches = JSON.parse(storedPitches);
+        const pitch = pitches.find(p => p._id === id);
+        if (pitch) {
+          setPitchName(pitch.name);
+          setLocation(pitch.location);
+          setPricePerHour(pitch.price_per_hour.toString());
+          setDescription(pitch.description);
+          setAmenities(pitch.amenities || []);
+          setImages(pitch.photos || []);
+          setIsActive(pitch.is_active);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading pitch data:", error);
+      Alert.alert("Error", "Failed to load pitch data. Please try again.");
+    }
+  }, [id]);
+
+  const handleScroll = useCallback((event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowHeaderBorder(scrollY > 0);
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!pitchName.trim()) {
       Alert.alert("Error", "Please enter a pitch name");
       return;
@@ -157,39 +151,83 @@ export default function EditPitch() {
       return;
     }
 
+    if (images.length < 3) {
+      Alert.alert("Error", "Please upload at least 3 images");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      // In a real app, you would save the data to your backend:
-      // await updatePitch({
-      //   id,
-      //   name: pitchName,
-      //   location,
-      //   price_per_hour: price,
-      //   description,
-      //   amenities,
-      //   photo: image,
-      //   is_active: isActive
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      Alert.alert("Success", "Pitch updated successfully!", [
-        {
-          text: "OK",
-          onPress: () => router.back(),
-        },
-      ]);
+      // Update the pitch in AsyncStorage
+      const storedPitches = await AsyncStorage.getItem('pitches');
+      if (storedPitches) {
+        const pitches = JSON.parse(storedPitches);
+        const updatedPitches = pitches.map(pitch => {
+          if (pitch._id === id) {
+            return {
+              ...pitch,
+              name: pitchName.trim(),
+              location: location.trim(),
+              price_per_hour: price,
+              description: description.trim(),
+              amenities,
+              photos: images,
+              is_active: isActive
+            };
+          }
+          return pitch;
+        });
+        
+        await AsyncStorage.setItem('pitches', JSON.stringify(updatedPitches));
+        
+        Alert.alert("Success", "Pitch updated successfully!", [
+          {
+            text: "OK",
+            onPress: () => router.push("/(tabs)/pitches"),
+          },
+        ]);
+      }
     } catch (error) {
       console.error("Error updating pitch:", error);
       Alert.alert("Error", "Failed to update pitch. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [pitchName, location, pricePerHour, description, amenities, images, isActive, id, router]);
 
-  const selectImage = async () => {
+  const handleDelete = useCallback(async () => {
+    Alert.alert(
+      "Delete Pitch",
+      "Are you sure you want to delete this pitch? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const storedPitches = await AsyncStorage.getItem('pitches');
+              if (storedPitches) {
+                const pitches = JSON.parse(storedPitches);
+                const updatedPitches = pitches.filter(pitch => pitch._id !== id);
+                await AsyncStorage.setItem('pitches', JSON.stringify(updatedPitches));
+                router.push("/(tabs)/pitches");
+              }
+            } catch (error) {
+              console.error("Error deleting pitch:", error);
+              Alert.alert("Error", "Failed to delete pitch. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  }, [id, router]);
+
+  const selectImages = useCallback(async () => {
     // Request permission to access media library
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -197,32 +235,67 @@ export default function EditPitch() {
       return;
     }
 
-    // Launch image picker
+    // Launch image picker for multiple images
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsMultipleSelection: true,
+      orderedSelection: true,
+      selectionLimit: 3 - images.length, // Limit to 3 images total
+      allowsEditing: false,
       quality: 1,
     });
 
-    // Set the selected image
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    // Add selected images to state
+    if (!result.canceled && result.assets) {
+      const newImages = result.assets.map(asset => asset.uri);
+      setImages(prev => [...prev, ...newImages]);
     }
-  };
+  }, [images.length]);
 
-  const addAmenity = () => {
+  // Remove an image
+  const removeImage = useCallback((index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const addAmenity = useCallback(() => {
     if (newAmenity.trim() && !amenities.includes(newAmenity.trim())) {
-      setAmenities([...amenities, newAmenity.trim()]);
+      setAmenities(prev => [...prev, newAmenity.trim()]);
       setNewAmenity("");
     }
-  };
+  }, [newAmenity, amenities]);
 
-  const removeAmenity = (amenityToRemove) => {
-    setAmenities(amenities.filter(amenity => amenity !== amenityToRemove));
-  };
+  const removeAmenity = useCallback((amenityToRemove) => {
+    setAmenities(prev => prev.filter(amenity => amenity !== amenityToRemove));
+  }, []);
 
-  const InputField = ({
+  // Optimize input handlers
+  const handlePitchNameChange = useCallback((text) => {
+    setPitchName(text);
+  }, []);
+
+  const handleLocationChange = useCallback((text) => {
+    setLocation(text);
+  }, []);
+
+  const handlePriceChange = useCallback((text) => {
+    // Only allow numeric input
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setPricePerHour(numericValue);
+  }, []);
+
+  const handleDescriptionChange = useCallback((text) => {
+    setDescription(text);
+  }, []);
+
+  const handleNewAmenityChange = useCallback((text) => {
+    setNewAmenity(text);
+  }, []);
+
+  const handleActiveChange = useCallback((value) => {
+    setIsActive(value);
+  }, []);
+
+  const InputField = useCallback(({
     label,
     value,
     onChangeText,
@@ -275,7 +348,7 @@ export default function EditPitch() {
         />
       </View>
     </View>
-  );
+  ), [colors, fontLoadError]);
 
   // Show loading indicator while fonts are loading and no error
   // Also show content after timeout to prevent infinite loading
@@ -316,7 +389,7 @@ export default function EditPitch() {
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.push("/(tabs)/pitches")}
             style={{ padding: 4 }}
           >
             <ArrowLeft size={24} color={colors.primary} />
@@ -357,102 +430,57 @@ export default function EditPitch() {
               textAlign: "center",
             }}
           >
-            Update the details below to modify your pitch
+            Update pitch details
           </Text>
 
-          {/* Image Picker */}
-          <View style={{ marginBottom: 20 }}>
+          {/* Form Sections - Same as Add Pitch but pre-filled with existing data */}
+          <View style={{ marginBottom: 24 }}>
             <Text
               style={{
-                fontFamily: fontLoadError ? "normal" : "Poppins_500Medium",
-                fontSize: 16,
+                fontFamily: fontLoadError ? "normal" : "Poppins_600SemiBold",
+                fontSize: 20,
                 color: colors.primary,
-                marginBottom: 8,
+                marginBottom: 16,
               }}
             >
-              Pitch Image
+              Pitch Information
             </Text>
-            <TouchableOpacity
-              onPress={selectImage}
-              style={{
-                backgroundColor: colors.cardBg,
-                borderRadius: 12,
-                padding: 16,
-                borderWidth: 1,
-                borderColor: colors.inputBorder,
-                alignItems: "center",
-                justifyContent: "center",
-                height: 150,
-              }}
-            >
-              {image ? (
-                <View style={{ alignItems: "center" }}>
-                  <Image 
-                    source={{ uri: image }} 
-                    style={{ width: 100, height: 100, borderRadius: 8, marginBottom: 8 }} 
-                  />
-                  <Text
-                    style={{
-                      fontFamily: fontLoadError ? "normal" : "Poppins_400Regular",
-                      fontSize: 14,
-                      color: colors.footballGreen,
-                    }}
-                  >
-                    Tap to change image
-                  </Text>
-                </View>
-              ) : (
-                <View style={{ alignItems: "center" }}>
-                  <ImageIcon size={48} color={colors.secondary} />
-                  <Text
-                    style={{
-                      fontFamily: fontLoadError ? "normal" : "Poppins_400Regular",
-                      fontSize: 14,
-                      color: colors.secondary,
-                      marginTop: 8,
-                    }}
-                  >
-                    Tap to select an image
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+
+            <InputField
+              label="Pitch Name *"
+              value={pitchName}
+              onChangeText={handlePitchNameChange}
+              placeholder="Enter pitch name"
+              icon={Building}
+            />
+
+            <InputField
+              label="Location *"
+              value={location}
+              onChangeText={handleLocationChange}
+              placeholder="Enter location"
+              icon={MapPin}
+            />
+
+            <InputField
+              label="Price per Hour (₦) *"
+              value={pricePerHour}
+              onChangeText={handlePriceChange}
+              placeholder="Enter price per hour"
+              icon={DollarSign}
+              keyboardType="numeric"
+            />
+
+            <InputField
+              label="Description"
+              value={description}
+              onChangeText={handleDescriptionChange}
+              placeholder="Enter pitch description"
+              icon={Building}
+              multiline={true}
+              numberOfLines={3}
+            />
           </View>
-
-          <InputField
-            label="Pitch Name *"
-            value={pitchName}
-            onChangeText={setPitchName}
-            placeholder="Enter pitch name"
-            icon={Building}
-          />
-
-          <InputField
-            label="Location *"
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Enter location"
-            icon={MapPin}
-          />
-
-          <InputField
-            label="Price per Hour (₦) *"
-            value={pricePerHour}
-            onChangeText={setPricePerHour}
-            placeholder="Enter price per hour"
-            icon={DollarSign}
-            keyboardType="numeric"
-          />
-
-          <InputField
-            label="Description"
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Enter pitch description"
-            icon={Building}
-            multiline={true}
-            numberOfLines={3}
-          />
 
           {/* Amenities */}
           <View style={{ marginBottom: 20 }}>
@@ -491,7 +519,7 @@ export default function EditPitch() {
                 placeholder="Add an amenity"
                 placeholderTextColor={colors.secondary}
                 value={newAmenity}
-                onChangeText={setNewAmenity}
+                onChangeText={handleNewAmenityChange}
                 onSubmitEditing={addAmenity}
               />
               <TouchableOpacity
@@ -550,6 +578,90 @@ export default function EditPitch() {
             )}
           </View>
 
+          {/* Image Upload Section */}
+          <View style={{ marginBottom: 24 }}>
+            <Text
+              style={{
+                fontFamily: fontLoadError ? "normal" : "Poppins_600SemiBold",
+                fontSize: 20,
+                color: colors.primary,
+                marginBottom: 16,
+              }}
+            >
+              Pitch Images
+            </Text>
+            <Text
+              style={{
+                fontFamily: fontLoadError ? "normal" : "Poppins_400Regular",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 12,
+              }}
+            >
+              Upload at least 3 images of your pitch ({images.length}/3)
+            </Text>
+            
+            {/* Image Preview Grid */}
+            {images.length > 0 && (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
+                {images.map((imageUri, index) => (
+                  <View key={index} style={{ width: "30%", margin: "1.66%" }}>
+                    <View style={{ position: "relative" }}>
+                      <Image
+                        source={{ uri: imageUri }}
+                        style={{ width: "100%", height: 100, borderRadius: 8 }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => removeImage(index)}
+                        style={{
+                          position: "absolute",
+                          top: 4,
+                          right: 4,
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          borderRadius: 12,
+                          width: 24,
+                          height: 24,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <X size={16} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            {/* Add Image Button */}
+            <TouchableOpacity
+              onPress={selectImages}
+              disabled={images.length >= 3}
+              style={{
+                backgroundColor: images.length >= 3 ? colors.lightGray : colors.cardBg,
+                borderRadius: 12,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: colors.inputBorder,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                opacity: images.length >= 3 ? 0.6 : 1,
+              }}
+            >
+              <ImageIcon size={20} color={colors.secondary} style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: fontLoadError ? "normal" : "Poppins_500Medium",
+                  fontSize: 16,
+                  color: colors.secondary,
+                }}
+              >
+                {images.length >= 3 ? "Maximum Images Added" : "Add Images"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Status Toggle */}
           <View
             style={{
@@ -593,7 +705,7 @@ export default function EditPitch() {
               )}
               <Switch
                 value={isActive}
-                onValueChange={setIsActive}
+                onValueChange={handleActiveChange}
                 trackColor={{
                   false: colors.lightGray,
                   true: colors.footballGreen,
@@ -603,31 +715,59 @@ export default function EditPitch() {
             </View>
           </View>
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: submitting ? colors.secondary : colors.footballGreen,
-              borderRadius: 16,
-              paddingVertical: 16,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: 8,
-            }}
-            onPress={handleSubmit}
-            disabled={submitting}
-          >
-            <Save size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text
+          {/* Action Buttons */}
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+            {/* Delete Button (only for edit mode) */}
+            <TouchableOpacity
               style={{
-                fontFamily: fontLoadError ? "normal" : "Poppins_600SemiBold",
-                fontSize: 16,
-                color: "#FFFFFF",
+                flex: 1,
+                backgroundColor: colors.error,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
               }}
+              onPress={handleDelete}
             >
-              {submitting ? "Updating Pitch..." : "Update Pitch"}
-            </Text>
-          </TouchableOpacity>
+              <Trash2 size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: fontLoadError ? "normal" : "Poppins_600SemiBold",
+                  fontSize: 16,
+                  color: "#FFFFFF",
+                }}
+              >
+                Delete Pitch
+              </Text>
+            </TouchableOpacity>
+
+            {/* Update Button */}
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: submitting ? colors.secondary : colors.footballGreen,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: "center",
+                flexDirection: "row",
+                justifyContent: "center",
+              }}
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
+              <Save size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontFamily: fontLoadError ? "normal" : "Poppins_600SemiBold",
+                  fontSize: 16,
+                  color: "#FFFFFF",
+                }}
+              >
+                {submitting ? "Updating..." : "Update Pitch"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </View>

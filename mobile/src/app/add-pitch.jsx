@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,10 +17,14 @@ import {
   Building,
   MapPin,
   DollarSign,
+  Image as ImageIcon,
+  X,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { toast } from "sonner-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import {
   useFonts,
   Inter_400Regular,
@@ -47,6 +51,7 @@ export default function AddPitch() {
   const [pitchName, setPitchName] = useState("");
   const [location, setLocation] = useState("");
   const [pricePerHour, setPricePerHour] = useState("");
+  const [images, setImages] = useState([]);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -71,13 +76,73 @@ export default function AddPitch() {
     setShowHeaderBorder(scrollY > 0);
   };
 
-  const handleSubmit = async () => {
-    console.log("Form data:", { pitchName, location, pricePerHour });
-    const allFieldsFilled =
-      pitchName.trim() && location.trim() && pricePerHour.trim();
+  // Request permissions and select images
+  const selectImages = useCallback(async () => {
+    // Request permission to access media library
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Sorry', 'We need camera roll permissions to make this work!');
+      return;
+    }
 
-    if (!allFieldsFilled) {
-      Alert.alert("Error", "Please fill in all fields");
+    // Launch image picker for multiple images
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      orderedSelection: true,
+      selectionLimit: 3 - images.length, // Limit to 3 images total
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    // Add selected images to state
+    if (!result.canceled && result.assets) {
+      const newImages = result.assets.map(asset => asset.uri);
+      setImages(prev => [...prev, ...newImages]);
+    }
+  }, [images.length]);
+
+  // Remove an image
+  const removeImage = useCallback((index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  // Optimize form handlers
+  const handlePitchNameChange = useCallback((text) => {
+    setPitchName(text);
+  }, []);
+
+  const handleLocationChange = useCallback((text) => {
+    setLocation(text);
+  }, []);
+
+  const handlePriceChange = useCallback((text) => {
+    // Only allow numeric input
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setPricePerHour(numericValue);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    console.log("Form data:", { pitchName, location, pricePerHour, images });
+    
+    // Validation
+    if (!pitchName.trim()) {
+      Alert.alert("Error", "Please enter a pitch name");
+      return;
+    }
+    
+    if (!location.trim()) {
+      Alert.alert("Error", "Please enter a location");
+      return;
+    }
+    
+    if (!pricePerHour.trim()) {
+      Alert.alert("Error", "Please enter a price per hour");
+      return;
+    }
+    
+    if (images.length < 3) {
+      Alert.alert("Error", "Please upload at least 3 images");
       return;
     }
 
@@ -98,9 +163,7 @@ export default function AddPitch() {
         price_per_hour: price,
         description: "Professional football pitch",
         amenities: ["Floodlights", "Changing Rooms"],
-        photos: [
-          "https://images.unsplash.com/photo-1540442588252-6b93036098a8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80",
-        ],
+        photos: images,
         is_active: true,
         rating: 4.5,
         total_bookings: 0,
@@ -122,21 +185,21 @@ export default function AddPitch() {
       // Show success toast
       toast.success("Pitch added successfully!");
 
-      // Navigate back to dashboard
-      router.push("/dashboard");
+      // Navigate back to pitches page
+      router.push("/(tabs)/pitches");
     } catch (error) {
       console.error("Error creating pitch:", error);
       Alert.alert("Error", "Failed to create pitch. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [pitchName, location, pricePerHour, images, router]);
 
-  const handleCancel = () => {
-    router.push("/dashboard");
-  };
+  const handleCancel = useCallback(() => {
+    router.push("/(tabs)/pitches");
+  }, [router]);
 
-  const InputField = ({
+  const InputField = useCallback(({
     label,
     value,
     onChangeText,
@@ -183,7 +246,7 @@ export default function AddPitch() {
         />
       </View>
     </View>
-  );
+  ), [colors]);
 
   if (!fontsLoaded) {
     return (
@@ -254,80 +317,153 @@ export default function AddPitch() {
             Fill in the details below to add a new pitch to your facility
           </Text>
 
-          <InputField
-            label="Pitch Name *"
-            value={pitchName}
-            onChangeText={setPitchName}
-            placeholder="Enter pitch name"
-            icon={Building}
-          />
-
-          <InputField
-            label="Location *"
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Enter location"
-            icon={MapPin}
-          />
-
-          <InputField
-            label="Price per Hour (NGN) *"
-            value={pricePerHour}
-            onChangeText={setPricePerHour}
-            placeholder="Enter price per hour"
-            icon={DollarSign}
-            keyboardType="numeric"
-          />
-
-          {/* Action Buttons */}
-          <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
-            <TouchableOpacity
+          {/* Form Sections */}
+          <View style={{ marginBottom: 24 }}>
+            <Text
               style={{
-                flex: 1,
-                backgroundColor: colors.lightGray,
-                borderRadius: 16,
-                paddingVertical: 16,
-                alignItems: "center",
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 20,
+                color: colors.primary,
+                marginBottom: 16,
               }}
-              onPress={handleCancel}
-              disabled={submitting}
             >
-              <Text
-                style={{
-                  fontFamily: "Inter_600SemiBold",
-                  fontSize: 16,
-                  color: colors.primary,
-                }}
-              >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+              Pitch Information
+            </Text>
 
-            <TouchableOpacity
+            <InputField
+              label="Pitch Name *"
+              value={pitchName}
+              onChangeText={handlePitchNameChange}
+              placeholder="Enter pitch name"
+              icon={Building}
+            />
+
+            <InputField
+              label="Location *"
+              value={location}
+              onChangeText={handleLocationChange}
+              placeholder="Enter location"
+              icon={MapPin}
+            />
+
+            <InputField
+              label="Price per Hour (NGN) *"
+              value={pricePerHour}
+              onChangeText={handlePriceChange}
+              placeholder="Enter price per hour"
+              icon={DollarSign}
+              keyboardType="numeric"
+            />
+          </View>
+
+          {/* Image Upload Section */}
+          <View style={{ marginBottom: 24 }}>
+            <Text
               style={{
-                flex: 1,
-                backgroundColor: submitting ? colors.secondary : colors.primaryGreen,
-                borderRadius: 16,
-                paddingVertical: 16,
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 20,
+                color: colors.primary,
+                marginBottom: 16,
+              }}
+            >
+              Pitch Images
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 12,
+              }}
+            >
+              Upload at least 3 images of your pitch ({images.length}/3)
+            </Text>
+            
+            {/* Image Preview Grid */}
+            {images.length > 0 && (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
+                {images.map((imageUri, index) => (
+                  <View key={index} style={{ width: "30%", margin: "1.66%" }}>
+                    <View style={{ position: "relative" }}>
+                      <Image
+                        source={{ uri: imageUri }}
+                        style={{ width: "100%", height: 100, borderRadius: 8 }}
+                      />
+                      <TouchableOpacity
+                        onPress={() => removeImage(index)}
+                        style={{
+                          position: "absolute",
+                          top: 4,
+                          right: 4,
+                          backgroundColor: "rgba(0,0,0,0.5)",
+                          borderRadius: 12,
+                          width: 24,
+                          height: 24,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <X size={16} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+            
+            {/* Add Image Button */}
+            <TouchableOpacity
+              onPress={selectImages}
+              disabled={images.length >= 3}
+              style={{
+                backgroundColor: images.length >= 3 ? colors.lightGray : colors.cardBg,
+                borderRadius: 12,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: colors.inputBorder,
                 alignItems: "center",
-                flexDirection: "row",
                 justifyContent: "center",
+                flexDirection: "row",
+                opacity: images.length >= 3 ? 0.6 : 1,
               }}
-              onPress={handleSubmit}
-              disabled={submitting}
             >
-              <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <ImageIcon size={20} color={colors.secondary} style={{ marginRight: 8 }} />
               <Text
                 style={{
-                  fontFamily: "Inter_600SemiBold",
+                  fontFamily: "Inter_500Medium",
                   fontSize: 16,
-                  color: "#FFFFFF",
+                  color: colors.secondary,
                 }}
               >
-                {submitting ? "Adding..." : "Add Pitch"}
+                {images.length >= 3 ? "Maximum Images Added" : "Add Images"}
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={{
+              backgroundColor: submitting ? colors.secondary : colors.primaryGreen,
+              borderRadius: 16,
+              paddingVertical: 16,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+            }}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 16,
+                color: "#FFFFFF",
+              }}
+            >
+              {submitting ? "Adding..." : "Add Pitch"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
