@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { UploadClient } from '@uploadcare/upload-client'
-const client = new UploadClient({ publicKey: process.env.EXPO_PUBLIC_UPLOADCARE_PUBLIC_KEY });
+
+// Use your own Uploadcare public key or replace with your own upload service
+const client = new UploadClient({ publicKey: 'YOUR_UPLOADCARE_PUBLIC_KEY' }); // Replace with your own key
 
 function useUpload() {
   const [loading, setLoading] = React.useState(false);
@@ -29,30 +31,27 @@ function useUpload() {
         }
 
         if (asset.file) {
+          // Use your own upload endpoint
           const formData = new FormData();
           formData.append("file", asset.file);
 
-          response = await fetch("/_create/api/upload/", {
+          response = await fetch("https://your-upload-endpoint.com/upload", { // Replace with your own endpoint
             method: "POST",
             body: formData,
           });
         } else {
-          // Fallback to presigned Uploadcare upload
-          const presignRes = await fetch("/_create/api/upload/presign/", {
-            method: "POST",
-          });
-          const { secureSignature, secureExpire } = await presignRes.json();
-
+          // Fallback to Uploadcare upload (you can replace this entirely)
           const result = await client.uploadFile(asset, {
             fileName: asset.name ?? asset.uri.split("/").pop(),
             contentType: asset.mimeType,
-            secureSignature,
-            secureExpire
           });
-          return { url: `${process.env.EXPO_PUBLIC_BASE_CREATE_USER_CONTENT_URL}/${result.uuid}/`, mimeType: result.mimeType || null };
+          
+          // Use your own content URL or Uploadcare's
+          return { url: `https://ucarecdn.com/${result.uuid}/`, mimeType: result.mimeType || null };
         }
       } else if ("url" in input) {
-        response = await fetch("/_create/api/upload/", {
+        // Use your own upload endpoint
+        response = await fetch("https://your-upload-endpoint.com/upload-url", { // Replace with your own endpoint
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -60,7 +59,8 @@ function useUpload() {
           body: JSON.stringify({ url: input.url })
         });
       } else if ("base64" in input) {
-        response = await fetch("/_create/api/upload/", {
+        // Use your own upload endpoint
+        response = await fetch("https://your-upload-endpoint.com/upload-base64", { // Replace with your own endpoint
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -68,7 +68,8 @@ function useUpload() {
           body: JSON.stringify({ base64: input.base64 })
         });
       } else {
-        response = await fetch("/_create/api/upload/", {
+        // Use your own upload endpoint
+        response = await fetch("https://your-upload-endpoint.com/upload-buffer", { // Replace with your own endpoint
           method: "POST",
           headers: {
             "Content-Type": "application/octet-stream"
@@ -76,12 +77,14 @@ function useUpload() {
           body: input.buffer
         });
       }
+      
       if (!response.ok) {
         if (response.status === 413) {
           throw new Error("Upload failed: File too large.");
         }
         throw new Error("Upload failed");
       }
+      
       const data = await response.json();
       return { url: data.url, mimeType: data.mimeType || null };
     } catch (uploadError) {

@@ -31,8 +31,8 @@ const DeviceErrorBoundary = ({
       isOpen
       description={
         sentLogs
-          ? 'It looks like an error occurred while trying to use your app. This error has been reported to the AI agent and should be visible to the AI soon. If it is not present please see create.xyz/docs for help'
-          : 'It looks like an error occurred while trying to use your app. Please see create.xyz/docs for help'
+          ? 'It looks like an error occurred while trying to use your app. This error has been reported to your error tracking service.'
+          : 'It looks like an error occurred while trying to use your app. Please check your app\'s error logs for more information.'
       }
     >
       <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -58,7 +58,7 @@ export class DeviceErrorBoundaryWrapper extends React.Component<
   componentDidCatch(error: unknown, errorInfo: React.ErrorInfo): void {
     this.setState({ error });
     reportErrorToRemote({ error })
-      .then(({ success, error: fetchError }) => {
+      .then(({ success }) => {
         this.setState({ hasError: true, sentLogs: success });
       })
       .catch((reportError) => {
