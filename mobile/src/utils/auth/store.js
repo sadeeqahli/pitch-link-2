@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-export const authKey = `${process.env.EXPO_PUBLIC_PROJECT_GROUP_ID}-jwt`;
+// Simplified auth key - you now own your authentication
+export const authKey = 'pitchlink-auth-jwt';
 
 /**
  * This store manages the authentication state of the application.

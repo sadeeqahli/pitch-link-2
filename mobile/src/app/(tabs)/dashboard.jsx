@@ -523,7 +523,7 @@ export default function Dashboard() {
                 </Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={{ flexDirection: "row", gap: 16, marginBottom: 24 }}>
               <StatCard
                 title="Today"

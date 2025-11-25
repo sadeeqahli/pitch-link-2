@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -35,19 +35,6 @@ export default function SimpleEditPitch() {
       setLoading(true);
       // Simulate fetching pitch data
       setTimeout(() => {
-        // In a real app, you would fetch the actual pitch data from your backend
-        // For now, we'll keep the mock data but you should replace this with:
-        // fetchPitchData(id).then(data => {
-        //   setPitchName(data.name);
-        //   setLocation(data.location);
-        //   setPricePerHour(data.price_per_hour.toString());
-        //   setDescription(data.description);
-        //   setAmenities(data.amenities);
-        //   setImage(data.photos[0]);
-        //   setIsActive(data.is_active);
-        //   setLoading(false);
-        // });
-        
         const mockPitch = {
           id: parseInt(id),
           name: "Main Football Pitch",
@@ -72,7 +59,7 @@ export default function SimpleEditPitch() {
   }, [id]);
 
   // Add this function for image selection
-  const selectImage = async () => {
+  const selectImage = useCallback(async () => {
     // Request permission to access media library
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -92,9 +79,9 @@ export default function SimpleEditPitch() {
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!pitchName.trim()) {
       Alert.alert("Error", "Please enter a pitch name");
       return;
@@ -119,18 +106,6 @@ export default function SimpleEditPitch() {
     setSubmitting(true);
 
     try {
-      // In a real app, you would save the data to your backend:
-      // await updatePitch({
-      //   id,
-      //   name: pitchName,
-      //   location,
-      //   price_per_hour: price,
-      //   description,
-      //   amenities,
-      //   photo: image,
-      //   is_active: isActive
-      // });
-      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -146,18 +121,49 @@ export default function SimpleEditPitch() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [pitchName, location, pricePerHour, router]);
 
-  const addAmenity = () => {
+  const addAmenity = useCallback(() => {
     if (newAmenity.trim() && !amenities.includes(newAmenity.trim())) {
-      setAmenities([...amenities, newAmenity.trim()]);
+      setAmenities(prev => [...prev, newAmenity.trim()]);
       setNewAmenity("");
     }
-  };
+  }, [newAmenity, amenities]);
 
-  const removeAmenity = (amenityToRemove) => {
-    setAmenities(amenities.filter(amenity => amenity !== amenityToRemove));
-  };
+  const removeAmenity = useCallback((amenityToRemove) => {
+    setAmenities(prev => prev.filter(amenity => amenity !== amenityToRemove));
+  }, []);
+
+  // Optimize input handlers
+  const handlePitchNameChange = useCallback((text) => {
+    setPitchName(text);
+  }, []);
+
+  const handleLocationChange = useCallback((text) => {
+    setLocation(text);
+  }, []);
+
+  const handlePriceChange = useCallback((text) => {
+    // Only allow numeric input
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setPricePerHour(numericValue);
+  }, []);
+
+  const handleDescriptionChange = useCallback((text) => {
+    setDescription(text);
+  }, []);
+
+  const handleNewAmenityChange = useCallback((text) => {
+    setNewAmenity(text);
+  }, []);
+
+  const handleActiveChange = useCallback((value) => {
+    setIsActive(value);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
 
   if (loading) {
     return (
@@ -185,7 +191,7 @@ export default function SimpleEditPitch() {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={handleBack}
           style={{ padding: 4 }}
         >
           <Text style={{ fontSize: 16, color: "#000" }}>Back</Text>
@@ -278,7 +284,7 @@ export default function SimpleEditPitch() {
                 placeholder="Enter pitch name"
                 placeholderTextColor="#999"
                 value={pitchName}
-                onChangeText={setPitchName}
+                onChangeText={handlePitchNameChange}
               />
             </View>
           </View>
@@ -309,7 +315,7 @@ export default function SimpleEditPitch() {
                 placeholder="Enter location"
                 placeholderTextColor="#999"
                 value={location}
-                onChangeText={setLocation}
+                onChangeText={handleLocationChange}
               />
             </View>
           </View>
@@ -340,7 +346,7 @@ export default function SimpleEditPitch() {
                 placeholder="Enter price per hour"
                 placeholderTextColor="#999"
                 value={pricePerHour}
-                onChangeText={setPricePerHour}
+                onChangeText={handlePriceChange}
                 keyboardType="numeric"
               />
             </View>
@@ -374,7 +380,7 @@ export default function SimpleEditPitch() {
                 placeholder="Enter pitch description"
                 placeholderTextColor="#999"
                 value={description}
-                onChangeText={setDescription}
+                onChangeText={handleDescriptionChange}
                 multiline={true}
                 numberOfLines={3}
               />
@@ -410,7 +416,7 @@ export default function SimpleEditPitch() {
                 placeholder="Add an amenity"
                 placeholderTextColor="#999"
                 value={newAmenity}
-                onChangeText={setNewAmenity}
+                onChangeText={handleNewAmenityChange}
                 onSubmitEditing={addAmenity}
               />
               <TouchableOpacity
@@ -486,7 +492,7 @@ export default function SimpleEditPitch() {
             </View>
             <Switch
               value={isActive}
-              onValueChange={setIsActive}
+              onValueChange={handleActiveChange}
               trackColor={{ false: "#ccc", true: "#00CC66" }}
               thumbColor={isActive ? "#fff" : "#f4f3f4" }
             />

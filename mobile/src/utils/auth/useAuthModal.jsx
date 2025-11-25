@@ -5,7 +5,6 @@ import { useCallback, useMemo } from 'react';
 import { AuthWebView } from './AuthWebView';
 import { useAuthStore, useAuthModal } from './store';
 
-
 /**
  * This component renders a modal for authentication purposes.
  * To show it programmatically, you should either use the `useRequireAuth` hook or the `useAuthModal` hook.
@@ -33,12 +32,14 @@ export const AuthModal = () => {
   const { isOpen, mode } = useAuthModal();
   const { auth } = useAuthStore();
 
+  // Set your own base URLs for authentication
+  // These should point to your own authentication services
   const snapPoints = useMemo(() => ['100%'], []);
-  const proxyURL = process.env.EXPO_PUBLIC_PROXY_BASE_URL;
-  const baseURL = process.env.EXPO_PUBLIC_BASE_URL;
-  if (!proxyURL || !baseURL) {
-    return null;
-  }
+  const proxyURL = 'https://your-proxy-domain.com'; // Replace with your own proxy URL
+  const baseURL = 'https://your-base-domain.com';   // Replace with your own base URL
+  
+  // Note: You should configure these URLs through your own environment variables
+  // or configuration system that you control
 
   return (
     <Modal

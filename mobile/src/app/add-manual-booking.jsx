@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -48,7 +48,7 @@ export default function AddManualBooking() {
   // Pitch options
   const [pitchOptions, setPitchOptions] = useState([]);
 
-  const colors = {
+  const colors = useMemo(() => ({
     primary: isDark ? "#FFFFFF" : "#000000",
     secondary: isDark ? "#CCCCCC" : "#6B7280",
     lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
@@ -59,7 +59,7 @@ export default function AddManualBooking() {
     error: "#EF4444",
     primaryBlue: "#0066CC",
     inputBorder: isDark ? "#374151" : "#D1D5DB",
-  };
+  }), [isDark]);
 
   useEffect(() => {
     // Load pitches from AsyncStorage
@@ -73,7 +73,7 @@ export default function AddManualBooking() {
     setBookingDate(`${year}-${month}-${day}`);
   }, []);
 
-  const loadPitches = async () => {
+  const loadPitches = useCallback(async () => {
     try {
       setLoadingPitches(true);
       const storedPitches = await AsyncStorage.getItem('pitches');
@@ -111,15 +111,15 @@ export default function AddManualBooking() {
     } finally {
       setLoadingPitches(false);
     }
-  };
+  }, []);
 
-  const handleScroll = (event) => {
+  const handleScroll = useCallback((event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowHeaderBorder(scrollY > 0);
-  };
+  }, []);
 
   // Calculate total amount based on selected pitch and time duration
-  const calculateTotalAmount = () => {
+  const calculateTotalAmount = useCallback(() => {
     if (!selectedPitch || !startTime || !endTime) return 0;
     
     // Fix the time format to avoid octal literal issues
@@ -137,9 +137,9 @@ export default function AddManualBooking() {
     }
     
     return Math.max(0, diffHours * selectedPitch.price_per_hour);
-  };
+  }, [selectedPitch, startTime, endTime]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     // Validation
     if (!playerName.trim()) {
       Alert.alert("Error", "Please enter the player's name");
@@ -213,13 +213,43 @@ export default function AddManualBooking() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [playerName, playerPhone, playerEmail, bookingDate, startTime, endTime, selectedPitch, router, calculateTotalAmount]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     router.push("/(tabs)/dashboard");
-  };
+  }, [router]);
 
-  const InputField = ({
+  // Optimize input handlers
+  const handlePlayerNameChange = useCallback((text) => {
+    setPlayerName(text);
+  }, []);
+
+  const handlePlayerPhoneChange = useCallback((text) => {
+    setPlayerPhone(text);
+  }, []);
+
+  const handlePlayerEmailChange = useCallback((text) => {
+    setPlayerEmail(text);
+  }, []);
+
+  const handleBookingDateChange = useCallback((text) => {
+    setBookingDate(text);
+  }, []);
+
+  const handleStartTimeChange = useCallback((text) => {
+    setStartTime(text);
+  }, []);
+
+  const handleEndTimeChange = useCallback((text) => {
+    setEndTime(text);
+  }, []);
+
+  const handlePitchChange = useCallback((itemValue) => {
+    const pitch = pitchOptions.find(p => p._id === itemValue);
+    setSelectedPitch(pitch);
+  }, [pitchOptions]);
+
+  const InputField = useCallback(({
     label,
     value,
     onChangeText,
@@ -275,7 +305,18 @@ export default function AddManualBooking() {
         />
       </View>
     </View>
-  );
+  ), [colors]);
+
+  // Precompute picker items to avoid re-rendering
+  const pitchPickerItems = useMemo(() => {
+    return pitchOptions.map((pitch) => (
+      <Picker.Item
+        key={pitch._id}
+        label={`${pitch.name} - NGN${parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hr`}
+        value={pitch._id}
+      />
+    ));
+  }, [pitchOptions]);
 
   // Show loading indicator while pitches are loading
   if (loadingPitches) {
@@ -385,18 +426,9 @@ export default function AddManualBooking() {
               <Picker
                 selectedValue={selectedPitch?._id}
                 style={{ flex: 1, color: colors.primary }}
-                onValueChange={(itemValue) => {
-                  const pitch = pitchOptions.find(p => p._id === itemValue);
-                  setSelectedPitch(pitch);
-                }}
+                onValueChange={handlePitchChange}
               >
-                {pitchOptions.map((pitch) => (
-                  <Picker.Item
-                    key={pitch._id}
-                    label={`${pitch.name} - NGN${parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hr`}
-                    value={pitch._id}
-                  />
-                ))}
+                {pitchPickerItems}
               </Picker>
             </View>
 
@@ -415,7 +447,7 @@ export default function AddManualBooking() {
             <InputField
               label="Player Name *"
               value={playerName}
-              onChangeText={setPlayerName}
+              onChangeText={handlePlayerNameChange}
               placeholder="Enter player's full name"
               icon={User}
             />
@@ -423,7 +455,7 @@ export default function AddManualBooking() {
             <InputField
               label="Phone Number"
               value={playerPhone}
-              onChangeText={setPlayerPhone}
+              onChangeText={handlePlayerPhoneChange}
               placeholder="Enter phone number"
               icon={Phone}
               keyboardType="phone-pad"
@@ -432,7 +464,7 @@ export default function AddManualBooking() {
             <InputField
               label="Email Address"
               value={playerEmail}
-              onChangeText={setPlayerEmail}
+              onChangeText={handlePlayerEmailChange}
               placeholder="Enter email address"
               icon={Mail}
               keyboardType="email-address"
@@ -454,7 +486,7 @@ export default function AddManualBooking() {
             <InputField
               label="Booking Date *"
               value={bookingDate}
-              onChangeText={setBookingDate}
+              onChangeText={handleBookingDateChange}
               placeholder="YYYY-MM-DD"
               icon={Calendar}
             />
@@ -464,7 +496,7 @@ export default function AddManualBooking() {
                 <InputField
                   label="Start Time *"
                   value={startTime}
-                  onChangeText={setStartTime}
+                  onChangeText={handleStartTimeChange}
                   placeholder="HH:MM"
                   icon={Clock}
                 />
@@ -473,7 +505,7 @@ export default function AddManualBooking() {
                 <InputField
                   label="End Time *"
                   value={endTime}
-                  onChangeText={setEndTime}
+                  onChangeText={handleEndTimeChange}
                   placeholder="HH:MM"
                   icon={Clock}
                 />

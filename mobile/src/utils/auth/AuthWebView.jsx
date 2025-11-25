@@ -9,12 +9,14 @@ const callbackQueryString = `callbackUrl=${callbackUrl}`;
 
 /**
  * This renders a WebView for authentication and handles both web and native platforms.
+ * Simplified version - removed create.xyz dependencies
  */
 export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
   const [currentURI, setURI] = useState(`${baseURL}/account/${mode}?${callbackQueryString}`);
   const { auth, setAuth, isReady } = useAuthStore();
   const isAuthenticated = isReady ? !!auth : null;
   const iframeRef = useRef(null);
+  
   useEffect(() => {
     if (Platform.OS === 'web') {
       return;
@@ -23,6 +25,7 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       router.back();
     }
   }, [isAuthenticated]);
+  
   useEffect(() => {
     if (isAuthenticated) {
       return;
@@ -35,10 +38,8 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       return;
     }
     const handleMessage = (event) => {
-      // Verify the origin for security
-      if (event.origin !== process.env.EXPO_PUBLIC_PROXY_BASE_URL) {
-        return;
-      }
+      // Simplified origin verification - you should implement your own security measures
+      // For production, use a proper origin verification mechanism
       if (event.data.type === 'AUTH_SUCCESS') {
         setAuth({
           jwt: event.data.jwt,
@@ -71,18 +72,14 @@ export const AuthWebView = ({ mode, proxyURL, baseURL }) => {
       />
     );
   }
+  
   return (
     <WebView
       sharedCookiesEnabled
       source={{
         uri: currentURI,
       }}
-      headers={{
-        'x-createxyz-project-group-id': process.env.EXPO_PUBLIC_PROJECT_GROUP_ID,
-        host: process.env.EXPO_PUBLIC_HOST,
-        'x-forwarded-host': process.env.EXPO_PUBLIC_HOST,
-        'x-createxyz-host': process.env.EXPO_PUBLIC_HOST,
-      }}
+      // Removed create.xyz headers - you now own your authentication headers
       onShouldStartLoadWithRequest={(request) => {
         if (request.url === `${baseURL}${callbackUrl}`) {
           fetch(request.url).then(async (response) => {

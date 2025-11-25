@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -47,7 +47,326 @@ import {
 import { useAuth } from '@/utils/auth/useAuth';
 import { countries, states } from '@/utils/countriesAndStates';
 
-export default function Profile() {
+// Separate component for the Edit Profile Modal
+const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, countries, states, colors, insets }) => {
+  const [editedData, setEditedData] = useState({ ...profileData });
+  
+  useEffect(() => {
+    if (visible) {
+      setEditedData({ ...profileData });
+    }
+  }, [visible, profileData]);
+
+  const handleSave = useCallback(() => {
+    onSave(editedData);
+  }, [editedData, onSave]);
+
+  const handleCountryChange = useCallback((countryCode) => {
+    // When country changes, also reset the state to the first available state
+    const newState = states[countryCode] && states[countryCode].length > 0 ? states[countryCode][0].id : "";
+    setEditedData(prevData => ({
+      ...prevData,
+      country: countryCode,
+      state: newState
+    }));
+  }, [states]);
+
+  // Optimize the onChangeText handlers
+  const handleTextChange = useCallback((field, text) => {
+    setEditedData(prevData => ({
+      ...prevData,
+      [field]: text
+    }));
+  }, []);
+
+  // Early return if not visible
+  if (!visible) {
+    return null;
+  }
+
+  // Precompute country items to avoid re-rendering
+  const countryItems = useMemo(() => {
+    return countries.map(country => (
+      <Picker.Item 
+        key={country.id} 
+        label={country.name} 
+        value={country.id} 
+      />
+    ));
+  }, [countries]);
+
+  // Precompute state items to avoid re-rendering
+  const stateItems = useMemo(() => {
+    const stateList = states[editedData.country] || [];
+    return stateList.map(state => (
+      <Picker.Item 
+        key={state.id} 
+        label={state.name} 
+        value={state.id} 
+      />
+    ));
+  }, [editedData.country, states]);
+
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={{
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20
+      }}>
+        <View style={{
+          backgroundColor: colors.cardBg,
+          borderRadius: 20,
+          padding: 20,
+          width: '100%',
+          maxHeight: '80%',
+        }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: 20
+          }}>
+            <Text style={{
+              fontFamily: "Inter_600SemiBold",
+              fontSize: 18,
+              color: colors.primary,
+            }}>
+              Edit Profile
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <X size={24} color={colors.secondary} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView 
+            style={{ maxHeight: 400 }} 
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Full Name */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                Full Name
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  padding: 16,
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+                value={editedData.fullName}
+                onChangeText={(text) => handleTextChange('fullName', text)}
+                placeholder="Enter your full name"
+              />
+            </View>
+            
+            {/* Email */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                Email
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  padding: 16,
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+                value={editedData.emailAddress}
+                onChangeText={(text) => handleTextChange('emailAddress', text)}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+              />
+            </View>
+            
+            {/* Phone */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                Phone
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  padding: 16,
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+                value={editedData.phoneNumber}
+                onChangeText={(text) => handleTextChange('phoneNumber', text)}
+                placeholder="Enter your phone number"
+                keyboardType="phone-pad"
+              />
+            </View>
+            
+            {/* Business Name */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                Business Name
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  padding: 16,
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 16,
+                  color: colors.primary,
+                }}
+                value={editedData.businessName}
+                onChangeText={(text) => handleTextChange('businessName', text)}
+                placeholder="Enter your business name"
+              />
+            </View>
+            
+            {/* Country */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                Country
+              </Text>
+              <View
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                }}
+              >
+                <Picker
+                  selectedValue={editedData.country}
+                  onValueChange={handleCountryChange}
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 16,
+                    color: colors.primary,
+                  }}
+                >
+                  {countryItems}
+                </Picker>
+              </View>
+            </View>
+            
+            {/* State */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+                color: colors.secondary,
+                marginBottom: 8
+              }}>
+                State
+              </Text>
+              <View
+                style={{
+                  backgroundColor: colors.lightGray,
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                }}
+              >
+                <Picker
+                  selectedValue={editedData.state}
+                  onValueChange={(value) => handleTextChange('state', value)}
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 16,
+                    color: colors.primary,
+                  }}
+                  key={editedData.country} // Force re-render when country changes
+                >
+                  {stateItems}
+                </Picker>
+              </View>
+            </View>
+          </ScrollView>
+          
+          <View style={{ flexDirection: 'row', marginTop: 20 }}>
+            <TouchableOpacity 
+              style={{
+                flex: 1,
+                padding: 16,
+                backgroundColor: colors.lightGray,
+                borderRadius: 12,
+                marginRight: 8,
+                alignItems: 'center'
+              }}
+              onPress={onClose}
+            >
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 16,
+                color: colors.primary,
+              }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={{
+                flex: 1,
+                padding: 16,
+                backgroundColor: colors.primaryGreen,
+                borderRadius: 12,
+                marginLeft: 8,
+                alignItems: 'center'
+              }}
+              onPress={handleSave}
+            >
+              <Text style={{
+                fontFamily: "Inter_500Medium",
+                fontSize: 16,
+                color: '#FFFFFF',
+              }}>
+                Save
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+});
+
+function Profile() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { signOut: authSignOut } = useAuth(); // Get the signOut function from useAuth
@@ -912,296 +1231,20 @@ export default function Profile() {
       </Modal>
 
       {/* Edit Profile Modal */}
-      <EditProfileModal 
-        visible={showEditProfileModal}
-        onClose={closeEditProfileModal}
-        profileData={profileData}
-        onSave={saveProfileChanges}
-        countries={countries}
-        states={states}
-        colors={colors}
-        insets={insets}
-      />
+      {showEditProfileModal && (
+        <EditProfileModal 
+          visible={showEditProfileModal}
+          onClose={closeEditProfileModal}
+          profileData={profileData}
+          onSave={saveProfileChanges}
+          countries={countries}
+          states={states}
+          colors={colors}
+          insets={insets}
+        />
+      )}
     </View>
   );
 }
 
-// Separate component for the Edit Profile Modal
-const EditProfileModal = ({ visible, onClose, profileData, onSave, countries, states, colors, insets }) => {
-  const [editedData, setEditedData] = useState({ ...profileData });
-  
-  useEffect(() => {
-    if (visible) {
-      setEditedData({ ...profileData });
-    }
-  }, [visible, profileData]);
-
-  const handleSave = () => {
-    onSave(editedData);
-  };
-
-  const handleCountryChange = (countryCode) => {
-    setEditedData({
-      ...editedData,
-      country: countryCode,
-      state: states[countryCode] ? states[countryCode][0].id : ""
-    });
-  };
-
-  return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20
-      }}>
-        <View style={{
-          backgroundColor: colors.cardBg,
-          borderRadius: 20,
-          padding: 20,
-          width: '100%',
-          maxHeight: '80%',
-        }}>
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: 20
-          }}>
-            <Text style={{
-              fontFamily: "Inter_600SemiBold",
-              fontSize: 18,
-              color: colors.primary,
-            }}>
-              Edit Profile
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <X size={24} color={colors.secondary} />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={{ maxHeight: 400 }}>
-            {/* Full Name */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                Full Name
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  padding: 16,
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 16,
-                  color: colors.primary,
-                }}
-                value={editedData.fullName}
-                onChangeText={(text) => setEditedData({...editedData, fullName: text})}
-                placeholder="Enter your full name"
-              />
-            </View>
-            
-            {/* Email */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                Email
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  padding: 16,
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 16,
-                  color: colors.primary,
-                }}
-                value={editedData.emailAddress}
-                onChangeText={(text) => setEditedData({...editedData, emailAddress: text})}
-                placeholder="Enter your email"
-                keyboardType="email-address"
-              />
-            </View>
-            
-            {/* Phone */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                Phone
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  padding: 16,
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 16,
-                  color: colors.primary,
-                }}
-                value={editedData.phoneNumber}
-                onChangeText={(text) => setEditedData({...editedData, phoneNumber: text})}
-                placeholder="Enter your phone number"
-                keyboardType="phone-pad"
-              />
-            </View>
-            
-            {/* Business Name */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                Business Name
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  padding: 16,
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 16,
-                  color: colors.primary,
-                }}
-                value={editedData.businessName}
-                onChangeText={(text) => setEditedData({...editedData, businessName: text})}
-                placeholder="Enter your business name"
-              />
-            </View>
-            
-            {/* Country */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                Country
-              </Text>
-              <View
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                }}
-              >
-                <Picker
-                  selectedValue={editedData.country}
-                  onValueChange={handleCountryChange}
-                  style={{
-                    fontFamily: "Inter_400Regular",
-                    fontSize: 16,
-                    color: colors.primary,
-                  }}
-                >
-                  {countries.map(country => (
-                    <Picker.Item key={country.id} label={country.name} value={country.id} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-            
-            {/* State */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-                color: colors.secondary,
-                marginBottom: 8
-              }}>
-                State
-              </Text>
-              <View
-                style={{
-                  backgroundColor: colors.lightGray,
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                }}
-              >
-                <Picker
-                  selectedValue={editedData.state}
-                  onValueChange={(value) => setEditedData({...editedData, state: value})}
-                  style={{
-                    fontFamily: "Inter_400Regular",
-                    fontSize: 16,
-                    color: colors.primary,
-                  }}
-                >
-                  {states[editedData.country]?.map(state => (
-                    <Picker.Item key={state.id} label={state.name} value={state.id} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-          </ScrollView>
-          
-          <View style={{ flexDirection: 'row', marginTop: 20 }}>
-            <TouchableOpacity 
-              style={{
-                flex: 1,
-                padding: 16,
-                backgroundColor: colors.lightGray,
-                borderRadius: 12,
-                marginRight: 8,
-                alignItems: 'center'
-              }}
-              onPress={onClose}
-            >
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 16,
-                color: colors.primary,
-              }}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={{
-                flex: 1,
-                padding: 16,
-                backgroundColor: colors.primaryGreen,
-                borderRadius: 12,
-                marginLeft: 8,
-                alignItems: 'center'
-              }}
-              onPress={handleSave}
-            >
-              <Text style={{
-                fontFamily: "Inter_500Medium",
-                fontSize: 16,
-                color: '#FFFFFF',
-              }}>
-                Save
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
+export default Profile;

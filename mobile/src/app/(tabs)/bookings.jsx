@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -31,8 +31,6 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
-
-
 
 export default function Bookings() {
   const insets = useSafeAreaInsets();
@@ -80,7 +78,7 @@ export default function Bookings() {
     }
   }, [fontLoadErrorResult]);
 
-  const loadBookings = () => {
+  const loadBookings = useCallback(() => {
     try {
       const storedBookings = bookingsStorage.getAllBookings();
       setBookings(storedBookings);
@@ -91,20 +89,20 @@ export default function Bookings() {
       setBookings(bookingsStorage.bookings);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadBookings();
     setTimeout(() => setRefreshing(false), 1000);
-  };
+  }, [loadBookings]);
 
-  const handleScroll = (event) => {
+  const handleScroll = useCallback((event) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowHeaderBorder(scrollY > 0);
-  };
+  }, []);
 
-  const getStatusColor = (paymentStatus) => {
+  const getStatusColor = useCallback((paymentStatus) => {
     switch (paymentStatus) {
       case "confirmed":
         return colors.success;
@@ -115,9 +113,9 @@ export default function Bookings() {
       default:
         return colors.secondary;
     }
-  };
+  }, [colors]);
 
-  const getStatusIcon = (paymentStatus) => {
+  const getStatusIcon = useCallback((paymentStatus) => {
     switch (paymentStatus) {
       case "confirmed":
         return CheckCircle;
@@ -128,9 +126,13 @@ export default function Bookings() {
       default:
         return Clock;
     }
-  };
+  }, []);
 
-  const BookingCard = ({ booking }) => {
+  const handleAddBooking = useCallback(() => {
+    router.push("/add-booking");
+  }, [router]);
+
+  const BookingCard = useCallback(({ booking }) => {
     const StatusIcon = getStatusIcon(booking.payment_status);
 
     return (
@@ -253,11 +255,13 @@ export default function Bookings() {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [colors, isDark, getStatusColor, getStatusIcon, router]);
 
-  const filteredBookings = selectedFilter === "all" 
-    ? allBookings 
-    : allBookings.filter(booking => booking.payment_status === selectedFilter);
+  const filteredBookings = useMemo(() => {
+    return selectedFilter === "all" 
+      ? allBookings 
+      : allBookings.filter(booking => booking.payment_status === selectedFilter);
+  }, [selectedFilter, allBookings]);
 
   if (!fontsLoaded && !fontLoadError) {
     return (
@@ -341,7 +345,7 @@ export default function Bookings() {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onPress={() => router.push("/add-booking")}
+            onPress={handleAddBooking}
           >
             <Plus size={20} color={colors.primary} />
           </TouchableOpacity>
@@ -443,7 +447,7 @@ export default function Bookings() {
                   paddingHorizontal: 24,
                   marginTop: 16,
                 }}
-                onPress={() => router.push("/add-booking")}
+                onPress={handleAddBooking}
               >
                 <Text
                   style={{
