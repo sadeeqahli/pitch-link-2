@@ -511,7 +511,7 @@ export default function Dashboard() {
               >
                 Earnings Overview
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/pitch-analytics")}>
                 <Text
                   style={{
                     fontFamily: "Inter_500Medium",

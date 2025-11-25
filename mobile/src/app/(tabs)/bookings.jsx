@@ -138,8 +138,8 @@ export default function Bookings() {
         style={{
           backgroundColor: colors.cardBg,
           borderRadius: 16,
-          padding: 20,
-          marginBottom: 16,
+          padding: 16,
+          marginBottom: 12,
           shadowColor: isDark ? "#000000" : "#000000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: isDark ? 0.3 : 0.1,
@@ -154,14 +154,14 @@ export default function Bookings() {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            marginBottom: 12,
+            marginBottom: 10,
           }}
         >
           <View style={{ flex: 1 }}>
             <Text
               style={{
                 fontFamily: "Inter_600SemiBold",
-                fontSize: 18,
+                fontSize: 16,
                 color: colors.primary,
                 marginBottom: 4,
               }}
@@ -171,9 +171,9 @@ export default function Bookings() {
             <Text
               style={{
                 fontFamily: "Inter_500Medium",
-                fontSize: 14,
+                fontSize: 13,
                 color: colors.primaryGreen,
-                marginBottom: 8,
+                marginBottom: 6,
               }}
             >
               {booking.pitch_name}
@@ -183,7 +183,7 @@ export default function Bookings() {
             <Text
               style={{
                 fontFamily: "Inter_700Bold",
-                fontSize: 18,
+                fontSize: 16,
                 color: colors.primaryGreen,
                 marginBottom: 4,
               }}
@@ -200,11 +200,11 @@ export default function Bookings() {
                 backgroundColor: getStatusColor(booking.payment_status) + "20",
               }}
             >
-              <StatusIcon size={16} color={getStatusColor(booking.payment_status)} />
+              <StatusIcon size={12} color={getStatusColor(booking.payment_status)} />
               <Text
                 style={{
                   fontFamily: "Inter_500Medium",
-                  fontSize: 12,
+                  fontSize: 11,
                   color: getStatusColor(booking.payment_status),
                   marginLeft: 4,
                   textTransform: "capitalize",
@@ -216,71 +216,39 @@ export default function Bookings() {
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-          <Calendar size={16} color={colors.secondary} style={{ marginRight: 8 }} />
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              fontSize: 14,
-              color: colors.primary,
-            }}
-          >
-            {new Date(booking.booking_date).toLocaleDateString()} • {booking.start_time} - {booking.end_time}
-          </Text>
-        </View>
-
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-              <User size={16} color={colors.secondary} style={{ marginRight: 8 }} />
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                  color: colors.primary,
-                }}
-              >
-                {booking.player_name}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Phone size={16} color={colors.secondary} style={{ marginRight: 8 }} />
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                  color: colors.primary,
-                }}
-              >
-                {booking.player_phone}
-              </Text>
-            </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            borderTopWidth: 1,
+            borderTopColor: isDark ? "#2C2C2C" : "#E5E7EB",
+            paddingTop: 10,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Calendar size={14} color={colors.secondary} style={{ marginRight: 6 }} />
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 12,
+                color: colors.secondary,
+              }}
+            >
+              {new Date(booking.booking_date).toLocaleDateString()}
+            </Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-              <Mail size={16} color={colors.secondary} style={{ marginRight: 8 }} />
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                  color: colors.primary,
-                }}
-              >
-                {booking.player_email}
-              </Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <MapPin size={16} color={colors.secondary} style={{ marginRight: 8 }} />
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                  color: colors.primary,
-                }}
-              >
-                Pitch {booking.pitch_id}
-              </Text>
-            </View>
+          
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Clock size={14} color={colors.secondary} style={{ marginRight: 6 }} />
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 12,
+                color: colors.secondary,
+              }}
+            >
+              {booking.start_time} - {booking.end_time}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>

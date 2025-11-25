@@ -26,10 +26,11 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { bookingsStorage } from "../utils/bookingStorage";
 import {
   useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from "@expo-google-fonts/poppins";
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
 export default function BookingReceipt() {
   const insets = useSafeAreaInsets();
@@ -42,23 +43,24 @@ export default function BookingReceipt() {
   const [booking, setBooking] = useState(null);
 
   const [fontsLoaded, fontLoadErrorResult] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const [fontLoadError, setFontLoadError] = useState(false);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#CCCCCC" : "#6B7280",
-    lightGray: isDark ? "#2C2C2C" : "#F9FAFB",
-    white: isDark ? "#121212" : "#FFFFFF",
-    cardBg: isDark ? "#1F2937" : "#FFFFFF",
-    success: "#00CC66",
+    secondary: isDark ? "#9CA3AF" : "#6B7280",
+    lightGray: isDark ? "#1E1E1E" : "#F8F9FA",
+    white: isDark ? "#0A0A0A" : "#F8F9FA",
+    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
+    success: "#00FF88",
     warning: "#F59E0B",
     error: "#EF4444",
-    footballGreen: "#00CC66",
+    primaryGreen: "#00FF88",
     footballDark: "#059142",
   };
 
@@ -129,7 +131,7 @@ export default function BookingReceipt() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading receipt...
         </Text>
@@ -152,7 +154,7 @@ export default function BookingReceipt() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={colors.footballGreen} />
+        <ActivityIndicator size="large" color={colors.primaryGreen} />
         <Text style={{ fontSize: 16, color: colors.secondary, marginTop: 10 }}>
           Loading booking details...
         </Text>
@@ -169,7 +171,7 @@ export default function BookingReceipt() {
         style={{
           paddingTop: insets.top + 12,
           paddingBottom: 16,
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
           backgroundColor: colors.white,
           borderBottomWidth: showHeaderBorder ? 1 : 0,
           borderBottomColor: isDark ? "#2C2C2C" : "#E5E7EB",
@@ -190,8 +192,8 @@ export default function BookingReceipt() {
           </TouchableOpacity>
           <Text
             style={{
-              fontFamily: "Poppins_600SemiBold",
-              fontSize: 20,
+              fontFamily: "Inter_700Bold",
+              fontSize: 28,
               color: colors.primary,
             }}
           >
@@ -201,7 +203,7 @@ export default function BookingReceipt() {
             onPress={handlePrint}
             style={{ padding: 4 }}
           >
-            <Printer size={24} color={colors.footballGreen} />
+            <Printer size={24} color={colors.primaryGreen} />
           </TouchableOpacity>
         </View>
       </View>
@@ -213,13 +215,13 @@ export default function BookingReceipt() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           {/* Receipt Header */}
           <View style={{ alignItems: "center", marginBottom: 32 }}>
             <CheckCircle size={64} color={colors.success} />
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_700Bold",
                 fontSize: 24,
                 color: colors.success,
                 marginTop: 16,
@@ -230,7 +232,7 @@ export default function BookingReceipt() {
             </Text>
             <Text
               style={{
-                fontFamily: "Poppins_400Regular",
+                fontFamily: "Inter_400Regular",
                 fontSize: 16,
                 color: colors.secondary,
                 textAlign: "center",
@@ -245,8 +247,8 @@ export default function BookingReceipt() {
             style={{
               backgroundColor: colors.cardBg,
               borderRadius: 16,
-              padding: 20,
-              marginBottom: 24,
+              padding: 16,
+              marginBottom: 20,
               shadowColor: isDark ? "#000000" : "#000000",
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: isDark ? 0.3 : 0.1,
@@ -256,10 +258,10 @@ export default function BookingReceipt() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_600SemiBold",
                 fontSize: 18,
                 color: colors.primary,
-                marginBottom: 16,
+                marginBottom: 12,
               }}
             >
               Booking Details
@@ -270,15 +272,15 @@ export default function BookingReceipt() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: 8,
+                paddingVertical: 6,
               }}
             >
-              <User size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+              <User size={18} color={colors.secondary} style={{ marginRight: 10 }} />
               <View>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 12,
                     color: colors.secondary,
                     marginBottom: 2,
                   }}
@@ -287,8 +289,8 @@ export default function BookingReceipt() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
                     color: colors.primary,
                   }}
                 >
@@ -302,15 +304,15 @@ export default function BookingReceipt() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: 8,
+                paddingVertical: 6,
               }}
             >
-              <MapPin size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+              <MapPin size={18} color={colors.secondary} style={{ marginRight: 10 }} />
               <View>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 12,
                     color: colors.secondary,
                     marginBottom: 2,
                   }}
@@ -319,8 +321,8 @@ export default function BookingReceipt() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
                     color: colors.primary,
                   }}
                 >
@@ -334,15 +336,15 @@ export default function BookingReceipt() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: 8,
+                paddingVertical: 6,
               }}
             >
-              <Calendar size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+              <Calendar size={18} color={colors.secondary} style={{ marginRight: 10 }} />
               <View>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 12,
                     color: colors.secondary,
                     marginBottom: 2,
                   }}
@@ -351,8 +353,8 @@ export default function BookingReceipt() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
                     color: colors.primary,
                   }}
                 >
@@ -366,15 +368,15 @@ export default function BookingReceipt() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: 8,
+                paddingVertical: 6,
               }}
             >
-              <Clock size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+              <Clock size={18} color={colors.secondary} style={{ marginRight: 10 }} />
               <View>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 12,
                     color: colors.secondary,
                     marginBottom: 2,
                   }}
@@ -383,8 +385,8 @@ export default function BookingReceipt() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
                     color: colors.primary,
                   }}
                 >
@@ -398,15 +400,15 @@ export default function BookingReceipt() {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                paddingVertical: 8,
+                paddingVertical: 6,
               }}
             >
-              <MapPin size={20} color={colors.secondary} style={{ marginRight: 12 }} />
+              <MapPin size={18} color={colors.secondary} style={{ marginRight: 10 }} />
               <View>
                 <Text
                   style={{
-                    fontFamily: "Poppins_500Medium",
-                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    fontSize: 12,
                     color: colors.secondary,
                     marginBottom: 2,
                   }}
@@ -415,8 +417,8 @@ export default function BookingReceipt() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Poppins_400Regular",
-                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 14,
                     color: colors.primary,
                   }}
                 >
@@ -442,8 +444,8 @@ export default function BookingReceipt() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 18,
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 20,
                 color: colors.primary,
                 marginBottom: 16,
               }}
@@ -464,7 +466,7 @@ export default function BookingReceipt() {
                 <View>
                   <Text
                     style={{
-                      fontFamily: "Poppins_500Medium",
+                      fontFamily: "Inter_500Medium",
                       fontSize: 14,
                       color: colors.secondary,
                       marginBottom: 2,
@@ -474,7 +476,7 @@ export default function BookingReceipt() {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "Poppins_400Regular",
+                      fontFamily: "Inter_400Regular",
                       fontSize: 16,
                       color: colors.primary,
                     }}
@@ -498,7 +500,7 @@ export default function BookingReceipt() {
                 <View style={{ flex: 1, marginRight: 8 }}>
                   <Text
                     style={{
-                      fontFamily: "Poppins_500Medium",
+                      fontFamily: "Inter_500Medium",
                       fontSize: 14,
                       color: colors.secondary,
                       marginBottom: 2,
@@ -508,7 +510,7 @@ export default function BookingReceipt() {
                   </Text>
                   <Text
                     style={{
-                      fontFamily: "Poppins_400Regular",
+                      fontFamily: "Inter_400Regular",
                       fontSize: 14,
                       color: colors.primary,
                       flexWrap: "wrap",
@@ -539,8 +541,8 @@ export default function BookingReceipt() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
-                fontSize: 18,
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 20,
                 color: colors.primary,
                 marginBottom: 16,
               }}
@@ -557,7 +559,7 @@ export default function BookingReceipt() {
             >
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
+                  fontFamily: "Inter_400Regular",
                   fontSize: 16,
                   color: colors.primary,
                 }}
@@ -566,7 +568,7 @@ export default function BookingReceipt() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_400Regular",
+                  fontFamily: "Inter_400Regular",
                   fontSize: 16,
                   color: colors.primary,
                 }}
@@ -587,7 +589,7 @@ export default function BookingReceipt() {
             >
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 18,
                   color: colors.primary,
                 }}
@@ -596,9 +598,9 @@ export default function BookingReceipt() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Poppins_600SemiBold",
+                  fontFamily: "Inter_600SemiBold",
                   fontSize: 18,
-                  color: colors.footballGreen,
+                  color: colors.primaryGreen,
                 }}
               >
                 ₦{parseFloat(booking.total_amount || 0).toLocaleString()}
@@ -617,7 +619,7 @@ export default function BookingReceipt() {
           >
             <Text
               style={{
-                fontFamily: "Poppins_500Medium",
+                fontFamily: "Inter_500Medium",
                 fontSize: 14,
                 color: colors.secondary,
                 textAlign: "center",
@@ -628,7 +630,7 @@ export default function BookingReceipt() {
             </Text>
             <Text
               style={{
-                fontFamily: "Poppins_400Regular",
+                fontFamily: "Inter_400Regular",
                 fontSize: 12,
                 color: colors.secondary,
                 textAlign: "center",
@@ -641,21 +643,38 @@ export default function BookingReceipt() {
           {/* Print Button */}
           <TouchableOpacity
             style={{
-              backgroundColor: colors.footballGreen,
+              flex: 1,
+              backgroundColor: colors.cardBg,
               borderRadius: 16,
-              paddingVertical: 16,
+              padding: 20,
               alignItems: "center",
-              flexDirection: "row",
               justifyContent: "center",
+              shadowColor: isDark ? "#000000" : "#000000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 3,
             }}
             onPress={handlePrint}
           >
-            <Printer size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                backgroundColor: colors.primaryGreen + "20",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              <Printer size={24} color={colors.primaryGreen} />
+            </View>
             <Text
               style={{
-                fontFamily: "Poppins_600SemiBold",
+                fontFamily: "Inter_500Medium",
                 fontSize: 16,
-                color: "#FFFFFF",
+                color: colors.primary,
               }}
             >
               Print Receipt
