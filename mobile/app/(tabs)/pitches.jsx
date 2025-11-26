@@ -67,7 +67,7 @@ export default function Pitches() {
 
   useEffect(() => {
     loadPitches();
-    
+
     // Check for font loading errors
     if (fontLoadErrorResult) {
       setFontLoadError(true);
@@ -81,7 +81,28 @@ export default function Pitches() {
       const storedPitches = await AsyncStorage.getItem('pitches');
       if (storedPitches) {
         const parsedPitches = JSON.parse(storedPitches);
-        setPitches(parsedPitches);
+
+        // Validate and fix pitches that don't have _id
+        let needsUpdate = false;
+        const validatedPitches = parsedPitches.map((pitch, index) => {
+          if (!pitch._id) {
+            needsUpdate = true;
+            console.warn(`Pitch at index ${index} missing _id, assigning new ID`);
+            return {
+              ...pitch,
+              _id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            };
+          }
+          return pitch;
+        });
+
+        // If we had to fix any pitches, save the corrected data
+        if (needsUpdate) {
+          await AsyncStorage.setItem('pitches', JSON.stringify(validatedPitches));
+          console.log('Fixed pitches with missing _id fields');
+        }
+
+        setPitches(validatedPitches);
       } else {
         // Initialize with empty array if no pitches exist
         setPitches([]);
@@ -109,23 +130,23 @@ export default function Pitches() {
   const togglePitchStatus = useCallback(async (pitchId, currentStatus) => {
     try {
       // Update the pitch status in the local state
-      const updatedPitches = pitches.map(pitch => 
-        pitch._id === pitchId 
-          ? { ...pitch, is_active: !currentStatus } 
+      const updatedPitches = pitches.map(pitch =>
+        pitch._id === pitchId
+          ? { ...pitch, is_active: !currentStatus }
           : pitch
       );
-      
+
       setPitches(updatedPitches);
-      
+
       // Save updated pitches to AsyncStorage
       await AsyncStorage.setItem('pitches', JSON.stringify(updatedPitches));
-    
+
       // Show success message
       console.log("Pitch status updated successfully");
     } catch (error) {
       console.error("Error updating pitch status:", error);
       Alert.alert("Error", "Failed to update pitch status. Please try again.");
-      
+
       // Reload pitches to revert the change in case of error
       loadPitches();
     }
@@ -378,7 +399,7 @@ export default function Pitches() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      
+
       {/* Header */}
       <View
         style={{
@@ -406,7 +427,7 @@ export default function Pitches() {
           >
             Pitches
           </Text>
-          
+
           <TouchableOpacity
             style={{
               width: 40,
@@ -458,7 +479,7 @@ export default function Pitches() {
             >
               Pitch Overview
             </Text>
-            
+
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <View style={{ alignItems: "center" }}>
                 <Text
@@ -481,7 +502,7 @@ export default function Pitches() {
                   Total Pitches
                 </Text>
               </View>
-              
+
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
@@ -503,7 +524,7 @@ export default function Pitches() {
                   Active
                 </Text>
               </View>
-              
+
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
@@ -530,8 +551,8 @@ export default function Pitches() {
 
           {/* Pitches List */}
           {pitches.length > 0 ? (
-            pitches.map((pitch) => (
-              <PitchCard key={pitch._id} pitch={pitch} />
+            pitches.map((pitch, index) => (
+              <PitchCard key={pitch._id ? `pitch-${pitch._id}` : `pitch-index-${index}`} pitch={pitch} />
             ))
           ) : (
             <View

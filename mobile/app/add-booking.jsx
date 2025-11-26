@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -39,18 +39,7 @@ import {
 } from "@expo-google-fonts/inter";
 
 // Add DatePicker component
-const DatePicker = ({ label, value, onChange }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  
-  const colors = {
-    primary: isDark ? "#FFFFFF" : "#000000",
-    secondary: isDark ? "#9CA3AF" : "#6B7280",
-    cardBg: isDark ? "#1E1E1E" : "#FFFFFF",
-    inputBorder: isDark ? "#374151" : "#D1D5DB",
-    primaryGreen: "#00FF88",
-  };
-
+const DatePicker = ({ label, value, onChange, colors, fontsLoaded = true }) => {
   const openDatePicker = () => {
     // For now, we'll just show instructions since we don't have a date picker library
     Alert.alert(
@@ -66,7 +55,7 @@ const DatePicker = ({ label, value, onChange }) => {
     <View style={{ marginBottom: 20 }}>
       <Text
         style={{
-          fontFamily: "Inter_500Medium",
+          fontFamily: fontsLoaded ? "Inter_500Medium" : undefined,
           fontSize: 14,
           color: colors.primary,
           marginBottom: 8,
@@ -95,7 +84,7 @@ const DatePicker = ({ label, value, onChange }) => {
         <TextInput
           style={{
             flex: 1,
-            fontFamily: "Inter_400Regular",
+            fontFamily: fontsLoaded ? "Inter_400Regular" : undefined,
             fontSize: 16,
             color: colors.primary,
           }}
@@ -109,6 +98,68 @@ const DatePicker = ({ label, value, onChange }) => {
   );
 };
 
+// InputField component
+const InputField = React.memo(({
+  label,
+  defaultValue,
+  onChangeText,
+  placeholder,
+  icon: IconComponent,
+  keyboardType = "default",
+  multiline = false,
+  colors,
+  fontsLoaded = true,
+}) => (
+  <View style={{ marginBottom: 20 }}>
+    <Text
+      style={{
+        fontFamily: fontsLoaded ? "Inter_500Medium" : undefined,
+        fontSize: 14,
+        color: colors.primary,
+        marginBottom: 8,
+      }}
+    >
+      {label}
+    </Text>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: multiline ? "flex-start" : "center",
+        backgroundColor: colors.cardBg,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: colors.inputBorder,
+        paddingHorizontal: 16,
+        paddingVertical: multiline ? 16 : 12,
+      }}
+    >
+      {IconComponent && (
+        <IconComponent
+          size={20}
+          color={colors.secondary}
+          style={{ marginRight: 12, marginTop: multiline ? 4 : 0 }}
+        />
+      )}
+      <TextInput
+        style={{
+          flex: 1,
+          fontFamily: fontsLoaded ? "Inter_400Regular" : undefined,
+          fontSize: 16,
+          color: colors.primary,
+          minHeight: multiline ? 80 : undefined,
+          textAlignVertical: multiline ? "top" : "center",
+        }}
+        placeholder={placeholder}
+        placeholderTextColor={colors.secondary}
+        defaultValue={defaultValue}
+        onChangeText={onChangeText}
+        keyboardType={keyboardType}
+        multiline={multiline}
+      />
+    </View>
+  </View>
+));
+
 export default function AddBooking() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -119,13 +170,14 @@ export default function AddBooking() {
   const [loading, setLoading] = useState(true);
 
   // Form state
+  // Form state - converted to refs for performance
   const [selectedPitch, setSelectedPitch] = useState(null);
-  const [playerName, setPlayerName] = useState("");
-  const [playerEmail, setPlayerEmail] = useState("");
-  const [playerPhone, setPlayerPhone] = useState("");
-  const [bookingDate, setBookingDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const playerNameRef = useRef("");
+  const playerEmailRef = useRef("");
+  const playerPhoneRef = useRef("");
+  const bookingDateRef = useRef("");
+  const startTimeRef = useRef("");
+  const endTimeRef = useRef("");
   const [submitting, setSubmitting] = useState(false);
 
   const [fontsLoaded, fontLoadErrorResult] = useFonts({
@@ -136,6 +188,11 @@ export default function AddBooking() {
   });
 
   const [fontLoadError, setFontLoadError] = useState(false);
+
+  // Helper function to safely use fonts
+  const getFont = useCallback((fontName) => {
+    return (fontsLoaded && !fontLoadError) ? fontName : undefined;
+  }, [fontsLoaded, fontLoadError]);
 
   const colors = {
     primary: isDark ? "#FFFFFF" : "#000000",
@@ -158,11 +215,11 @@ export default function AddBooking() {
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
-    setBookingDate(`${year}-${month}-${day}`);
-    
+    bookingDateRef.current = `${year}-${month}-${day}`;
+
     // Set loading to false immediately to show the form
     setLoading(false);
-    
+
     // Check for font loading errors (but don't block the UI)
     if (fontLoadErrorResult) {
       setFontLoadError(true);
@@ -220,27 +277,27 @@ export default function AddBooking() {
 
   // Optimize form handlers
   const handlePlayerNameChange = useCallback((text) => {
-    setPlayerName(text);
+    playerNameRef.current = text;
   }, []);
 
   const handlePlayerEmailChange = useCallback((text) => {
-    setPlayerEmail(text);
+    playerEmailRef.current = text;
   }, []);
 
   const handlePlayerPhoneChange = useCallback((text) => {
-    setPlayerPhone(text);
+    playerPhoneRef.current = text;
   }, []);
 
   const handleBookingDateChange = useCallback((text) => {
-    setBookingDate(text);
+    bookingDateRef.current = text;
   }, []);
 
   const handleStartTimeChange = useCallback((text) => {
-    setStartTime(text);
+    startTimeRef.current = text;
   }, []);
 
   const handleEndTimeChange = useCallback((text) => {
-    setEndTime(text);
+    endTimeRef.current = text;
   }, []);
 
   const handlePitchChange = useCallback((pitchId) => {
@@ -249,6 +306,13 @@ export default function AddBooking() {
   }, [pitches]);
 
   const handleSubmit = useCallback(async () => {
+    const playerName = playerNameRef.current;
+    const playerEmail = playerEmailRef.current;
+    const playerPhone = playerPhoneRef.current;
+    const bookingDate = bookingDateRef.current;
+    const startTime = startTimeRef.current;
+    const endTime = endTimeRef.current;
+
     const allFieldsFilled =
       selectedPitch &&
       playerName.trim() &&
@@ -317,66 +381,50 @@ export default function AddBooking() {
     } finally {
       setSubmitting(false);
     }
-  }, [selectedPitch, playerName, playerEmail, playerPhone, bookingDate, startTime, endTime, router]);
+  }, [selectedPitch, router]);
 
-  const InputField = useCallback(({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    icon: IconComponent,
-    keyboardType = "default",
-    multiline = false,
-  }) => (
-    <View style={{ marginBottom: 20 }}>
-      <Text
-        style={{
-          fontFamily: "Inter_500Medium",
-          fontSize: 14,
-          color: colors.primary,
-          marginBottom: 8,
-        }}
-      >
-        {label}
-      </Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: multiline ? "flex-start" : "center",
-          backgroundColor: colors.cardBg,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: colors.inputBorder,
-          paddingHorizontal: 16,
-          paddingVertical: multiline ? 16 : 12,
-        }}
-      >
-        {IconComponent && (
-          <IconComponent
-            size={20}
-            color={colors.secondary}
-            style={{ marginRight: 12, marginTop: multiline ? 4 : 0 }}
-          />
-        )}
-        <TextInput
-          style={{
-            flex: 1,
-            fontFamily: "Inter_400Regular",
-            fontSize: 16,
-            color: colors.primary,
-            minHeight: multiline ? 80 : undefined,
-            textAlignVertical: multiline ? "top" : "center",
-          }}
-          placeholder={placeholder}
-          placeholderTextColor={colors.secondary}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          multiline={multiline}
+  // Calculate total amount based on selected pitch and time duration
+  const calculateTotalAmount = useCallback(() => {
+    if (!selectedPitch || !startTimeRef.current || !endTimeRef.current) return 0;
+
+    const start = new Date(`1970-01-01T${startTimeRef.current}:00`);
+    const end = new Date(`1970-01-01T${endTimeRef.current}:00`);
+
+    // Handle case where end time is next day (e.g., 22:00 to 02:00)
+    let diffHours;
+    if (end <= start) {
+      diffHours = 24 - (start - end) / (1000 * 60 * 60);
+    } else {
+      diffHours = (end - start) / (1000 * 60 * 60);
+    }
+
+    return Math.max(0, diffHours * selectedPitch.price_per_hour);
+  }, [selectedPitch, startTimeRef, endTimeRef]);
+
+  // Precompute picker items to avoid re-rendering
+  const activePitches = useMemo(() => {
+    return pitches.filter(pitch => pitch.is_active);
+  }, [pitches]);
+
+  const pitchPickerItems = useMemo(() => {
+    if (activePitches.length === 0) {
+      return (
+        <Picker.Item
+          key="no-pitches"
+          label="No active pitches available"
+          value={null}
+          enabled={false}
         />
-      </View>
-    </View>
-  ), [colors]);
+      );
+    }
+    return activePitches.map((pitch) => (
+      <Picker.Item
+        key={pitch._id}
+        label={`${pitch.name} - ₦${parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hr`}
+        value={pitch._id}
+      />
+    ));
+  }, [activePitches]);
 
   // Handle font loading states more gracefully
   if (!fontsLoaded && !fontLoadError) {
@@ -420,39 +468,6 @@ export default function AddBooking() {
       </View>
     );
   }
-
-  // Calculate total amount based on selected pitch and time duration
-  const calculateTotalAmount = useCallback(() => {
-    if (!selectedPitch || !startTime || !endTime) return 0;
-    
-    const start = new Date(`1970-01-01T${startTime}:00`);
-    const end = new Date(`1970-01-01T${endTime}:00`);
-    
-    // Handle case where end time is next day (e.g., 22:00 to 02:00)
-    let diffHours;
-    if (end <= start) {
-      diffHours = 24 - (start - end) / (1000 * 60 * 60);
-    } else {
-      diffHours = (end - start) / (1000 * 60 * 60);
-    }
-    
-    return Math.max(0, diffHours * selectedPitch.price_per_hour);
-  }, [selectedPitch, startTime, endTime]);
-
-  // Precompute picker items to avoid re-rendering
-  const activePitches = useMemo(() => {
-    return pitches.filter(pitch => pitch.is_active);
-  }, [pitches]);
-
-  const pitchPickerItems = useMemo(() => {
-    return activePitches.map((pitch) => (
-      <Picker.Item
-        key={pitch._id}
-        label={`${pitch.name} - ₦${parseFloat(pitch.price_per_hour || 0).toLocaleString()}/hr`}
-        value={pitch._id}
-      />
-    ));
-  }, [activePitches]);
 
   return (
     <KeyboardAvoidingAnimatedView
@@ -504,7 +519,7 @@ export default function AddBooking() {
           <View style={{ alignItems: "center" }}>
             <Text
               style={{
-                fontFamily: "Inter_700Bold",
+                ...(fontsLoaded && !fontLoadError ? { fontFamily: "Inter_700Bold" } : {}),
                 fontSize: 28,
                 color: colors.primary,
               }}
@@ -513,7 +528,7 @@ export default function AddBooking() {
             </Text>
             <Text
               style={{
-                fontFamily: "Inter_500Medium",
+                ...(fontsLoaded && !fontLoadError ? { fontFamily: "Inter_500Medium" } : {}),
                 fontSize: 14,
                 color: colors.secondary,
               }}
@@ -537,7 +552,7 @@ export default function AddBooking() {
           {/* Pitch Selection */}
           <Text
             style={{
-              fontFamily: "Inter_600SemiBold",
+              fontFamily: getFont("Inter_600SemiBold"),
               fontSize: 18,
               color: colors.primary,
               marginBottom: 16,
@@ -572,7 +587,7 @@ export default function AddBooking() {
           {/* Player Information */}
           <Text
             style={{
-              fontFamily: "Inter_600SemiBold",
+              fontFamily: getFont("Inter_600SemiBold"),
               fontSize: 18,
               color: colors.primary,
               marginBottom: 16,
@@ -583,34 +598,40 @@ export default function AddBooking() {
 
           <InputField
             label="Full Name *"
-            value={playerName}
+            defaultValue={playerNameRef.current}
             onChangeText={handlePlayerNameChange}
             placeholder="Enter player's full name"
             icon={User}
+            colors={colors}
+            fontsLoaded={fontsLoaded && !fontLoadError}
           />
 
           <InputField
             label="Email Address *"
-            value={playerEmail}
+            defaultValue={playerEmailRef.current}
             onChangeText={handlePlayerEmailChange}
             placeholder="Enter player's email"
             icon={Mail}
             keyboardType="email-address"
+            colors={colors}
+            fontsLoaded={fontsLoaded && !fontLoadError}
           />
 
           <InputField
             label="Phone Number *"
-            value={playerPhone}
+            defaultValue={playerPhoneRef.current}
             onChangeText={handlePlayerPhoneChange}
             placeholder="Enter player's phone number"
             icon={Phone}
             keyboardType="phone-pad"
+            colors={colors}
+            fontsLoaded={fontsLoaded && !fontLoadError}
           />
 
           {/* Booking Details */}
           <Text
             style={{
-              fontFamily: "Inter_600SemiBold",
+              fontFamily: getFont("Inter_600SemiBold"),
               fontSize: 18,
               color: colors.primary,
               marginBottom: 16,
@@ -619,13 +640,13 @@ export default function AddBooking() {
             Booking Details
           </Text>
 
-          <DatePicker label="Booking Date *" value={bookingDate} onChange={handleBookingDateChange} />
+          <DatePicker label="Booking Date *" value={bookingDateRef.current} onChange={handleBookingDateChange} colors={colors} fontsLoaded={fontsLoaded && !fontLoadError} />
 
           <View style={{ flexDirection: "row", gap: 16, marginBottom: 20 }}>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontFamily: "Inter_500Medium",
+                  fontFamily: getFont("Inter_500Medium"),
                   fontSize: 14,
                   color: colors.primary,
                   marginBottom: 8,
@@ -649,11 +670,11 @@ export default function AddBooking() {
                 <TextInput
                   style={{
                     flex: 1,
-                    fontFamily: "Inter_400Regular",
+                    fontFamily: getFont("Inter_400Regular"),
                     fontSize: 16,
                     color: colors.primary,
                   }}
-                  value={startTime}
+                  defaultValue={startTimeRef.current}
                   onChangeText={handleStartTimeChange}
                   placeholder="HH:MM"
                   placeholderTextColor={colors.secondary}
@@ -664,7 +685,7 @@ export default function AddBooking() {
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  fontFamily: "Inter_500Medium",
+                  fontFamily: getFont("Inter_500Medium"),
                   fontSize: 14,
                   color: colors.primary,
                   marginBottom: 8,
@@ -688,11 +709,11 @@ export default function AddBooking() {
                 <TextInput
                   style={{
                     flex: 1,
-                    fontFamily: "Inter_400Regular",
+                    fontFamily: getFont("Inter_400Regular"),
                     fontSize: 16,
                     color: colors.primary,
                   }}
-                  value={endTime}
+                  defaultValue={endTimeRef.current}
                   onChangeText={handleEndTimeChange}
                   placeholder="HH:MM"
                   placeholderTextColor={colors.secondary}
@@ -717,7 +738,7 @@ export default function AddBooking() {
           >
             <Text
               style={{
-                fontFamily: "Inter_600SemiBold",
+                fontFamily: getFont("Inter_600SemiBold"),
                 fontSize: 18,
                 color: colors.primary,
                 marginBottom: 16,
@@ -729,7 +750,7 @@ export default function AddBooking() {
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
               <Text
                 style={{
-                  fontFamily: "Inter_400Regular",
+                  fontFamily: getFont("Inter_400Regular"),
                   fontSize: 16,
                   color: colors.secondary,
                 }}
@@ -738,7 +759,7 @@ export default function AddBooking() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Inter_500Medium",
+                  fontFamily: getFont("Inter_500Medium"),
                   fontSize: 16,
                   color: colors.primary,
                 }}
@@ -764,7 +785,7 @@ export default function AddBooking() {
                   color: colors.primary,
                 }}
               >
-                {bookingDate || "Not selected"}
+                {bookingDateRef.current || "Not selected"}
               </Text>
             </View>
 
@@ -785,7 +806,7 @@ export default function AddBooking() {
                   color: colors.primary,
                 }}
               >
-                {startTime || "00:00"} - {endTime || "00:00"}
+                {startTimeRef.current || "00:00"} - {endTimeRef.current || "00:00"}
               </Text>
             </View>
 
@@ -800,7 +821,7 @@ export default function AddBooking() {
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Text
                 style={{
-                  fontFamily: "Inter_600SemiBold",
+                  fontFamily: getFont("Inter_600SemiBold"),
                   fontSize: 18,
                   color: colors.primary,
                 }}
@@ -809,7 +830,7 @@ export default function AddBooking() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "Inter_700Bold",
+                  fontFamily: getFont("Inter_700Bold"),
                   fontSize: 20,
                   color: colors.primaryGreen,
                 }}
@@ -833,7 +854,7 @@ export default function AddBooking() {
             >
               <Text
                 style={{
-                  fontFamily: "Inter_600SemiBold",
+                  fontFamily: getFont("Inter_600SemiBold"),
                   fontSize: 16,
                   color: colors.primary,
                 }}
@@ -858,7 +879,7 @@ export default function AddBooking() {
               <Plus size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Text
                 style={{
-                  fontFamily: "Inter_600SemiBold",
+                  fontFamily: getFont("Inter_600SemiBold"),
                   fontSize: 16,
                   color: "#FFFFFF",
                 }}

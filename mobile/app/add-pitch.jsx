@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -48,9 +48,10 @@ export default function AddPitch() {
   });
 
   // Form state
-  const [pitchName, setPitchName] = useState("");
-  const [location, setLocation] = useState("");
-  const [pricePerHour, setPricePerHour] = useState("");
+  // Form state - converted to refs for performance
+  const pitchNameRef = useRef("");
+  const locationRef = useRef("");
+  const pricePerHourRef = useRef("");
   const [images, setImages] = useState([]);
 
   const colors = {
@@ -109,38 +110,42 @@ export default function AddPitch() {
 
   // Optimize form handlers
   const handlePitchNameChange = useCallback((text) => {
-    setPitchName(text);
+    pitchNameRef.current = text;
   }, []);
 
   const handleLocationChange = useCallback((text) => {
-    setLocation(text);
+    locationRef.current = text;
   }, []);
 
   const handlePriceChange = useCallback((text) => {
     // Only allow numeric input
     const numericValue = text.replace(/[^0-9]/g, '');
-    setPricePerHour(numericValue);
+    pricePerHourRef.current = numericValue;
   }, []);
 
   const handleSubmit = useCallback(async () => {
+    const pitchName = pitchNameRef.current;
+    const location = locationRef.current;
+    const pricePerHour = pricePerHourRef.current;
+
     console.log("Form data:", { pitchName, location, pricePerHour, images });
-    
+
     // Validation
     if (!pitchName.trim()) {
       Alert.alert("Error", "Please enter a pitch name");
       return;
     }
-    
+
     if (!location.trim()) {
       Alert.alert("Error", "Please enter a location");
       return;
     }
-    
+
     if (!pricePerHour.trim()) {
       Alert.alert("Error", "Please enter a price per hour");
       return;
     }
-    
+
     if (images.length < 3) {
       Alert.alert("Error", "Please upload at least 3 images");
       return;
@@ -193,15 +198,15 @@ export default function AddPitch() {
     } finally {
       setSubmitting(false);
     }
-  }, [pitchName, location, pricePerHour, images, router]);
+  }, [images, router]);
 
   const handleCancel = useCallback(() => {
     router.push("/(tabs)/pitches");
   }, [router]);
 
-  const InputField = useCallback(({
+  const InputField = useMemo(() => React.memo(({
     label,
-    value,
+    defaultValue,
     onChangeText,
     placeholder,
     icon: IconComponent,
@@ -240,13 +245,13 @@ export default function AddPitch() {
           }}
           placeholder={placeholder}
           placeholderTextColor={colors.secondary}
-          value={value}
+          defaultValue={defaultValue}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
         />
       </View>
     </View>
-  ), [colors]);
+  )), [colors]);
 
   if (!fontsLoaded) {
     return (
@@ -260,7 +265,7 @@ export default function AddPitch() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      
+
       {/* Header */}
       <View
         style={{
@@ -332,7 +337,7 @@ export default function AddPitch() {
 
             <InputField
               label="Pitch Name *"
-              value={pitchName}
+              defaultValue={pitchNameRef.current}
               onChangeText={handlePitchNameChange}
               placeholder="Enter pitch name"
               icon={Building}
@@ -340,7 +345,7 @@ export default function AddPitch() {
 
             <InputField
               label="Location *"
-              value={location}
+              defaultValue={locationRef.current}
               onChangeText={handleLocationChange}
               placeholder="Enter location"
               icon={MapPin}
@@ -348,7 +353,7 @@ export default function AddPitch() {
 
             <InputField
               label="Price per Hour (NGN) *"
-              value={pricePerHour}
+              defaultValue={pricePerHourRef.current}
               onChangeText={handlePriceChange}
               placeholder="Enter price per hour"
               icon={DollarSign}
@@ -378,7 +383,7 @@ export default function AddPitch() {
             >
               Upload at least 3 images of your pitch ({images.length}/3)
             </Text>
-            
+
             {/* Image Preview Grid */}
             {images.length > 0 && (
               <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
@@ -410,7 +415,7 @@ export default function AddPitch() {
                 ))}
               </View>
             )}
-            
+
             {/* Add Image Button */}
             <TouchableOpacity
               onPress={selectImages}

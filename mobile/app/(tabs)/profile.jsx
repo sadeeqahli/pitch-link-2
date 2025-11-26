@@ -49,35 +49,50 @@ import { countries, states } from '@/utils/countriesAndStates';
 
 // Separate component for the Edit Profile Modal
 const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, countries, states, colors, insets }) => {
-  const [editedData, setEditedData] = useState({ ...profileData });
-  
+  // Use refs for text fields to avoid re-renders on every keystroke
+  const fullNameRef = React.useRef(profileData.fullName);
+  const emailRef = React.useRef(profileData.emailAddress);
+  const phoneRef = React.useRef(profileData.phoneNumber);
+  const businessNameRef = React.useRef(profileData.businessName);
+
+  // Keep location data in state as it affects UI (dependent dropdowns)
+  const [locationData, setLocationData] = useState({
+    country: profileData.country,
+    state: profileData.state
+  });
+
   useEffect(() => {
     if (visible) {
-      setEditedData({ ...profileData });
+      fullNameRef.current = profileData.fullName;
+      emailRef.current = profileData.emailAddress;
+      phoneRef.current = profileData.phoneNumber;
+      businessNameRef.current = profileData.businessName;
+      setLocationData({
+        country: profileData.country,
+        state: profileData.state
+      });
     }
   }, [visible, profileData]);
 
   const handleSave = useCallback(() => {
-    onSave(editedData);
-  }, [editedData, onSave]);
+    onSave({
+      fullName: fullNameRef.current,
+      emailAddress: emailRef.current,
+      phoneNumber: phoneRef.current,
+      businessName: businessNameRef.current,
+      country: locationData.country,
+      state: locationData.state
+    });
+  }, [locationData, onSave]);
 
   const handleCountryChange = useCallback((countryCode) => {
     // When country changes, also reset the state to the first available state
     const newState = states[countryCode] && states[countryCode].length > 0 ? states[countryCode][0].id : "";
-    setEditedData(prevData => ({
-      ...prevData,
+    setLocationData(prev => ({
       country: countryCode,
       state: newState
     }));
   }, [states]);
-
-  // Optimize the onChangeText handlers
-  const handleTextChange = useCallback((field, text) => {
-    setEditedData(prevData => ({
-      ...prevData,
-      [field]: text
-    }));
-  }, []);
 
   // Early return if not visible
   if (!visible) {
@@ -87,25 +102,25 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
   // Precompute country items to avoid re-rendering
   const countryItems = useMemo(() => {
     return countries.map(country => (
-      <Picker.Item 
-        key={country.id} 
-        label={country.name} 
-        value={country.id} 
+      <Picker.Item
+        key={country.id}
+        label={country.name}
+        value={country.id}
       />
     ));
   }, [countries]);
 
   // Precompute state items to avoid re-rendering
   const stateItems = useMemo(() => {
-    const stateList = states[editedData.country] || [];
+    const stateList = states[locationData.country] || [];
     return stateList.map(state => (
-      <Picker.Item 
-        key={state.id} 
-        label={state.name} 
-        value={state.id} 
+      <Picker.Item
+        key={state.id}
+        label={state.name}
+        value={state.id}
       />
     ));
-  }, [editedData.country, states]);
+  }, [locationData.country, states]);
 
   return (
     <Modal
@@ -128,9 +143,9 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
           width: '100%',
           maxHeight: '80%',
         }}>
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 20
           }}>
@@ -145,9 +160,9 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
               <X size={24} color={colors.secondary} />
             </TouchableOpacity>
           </View>
-          
-          <ScrollView 
-            style={{ maxHeight: 400 }} 
+
+          <ScrollView
+            style={{ maxHeight: 400 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -170,12 +185,12 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                   fontSize: 16,
                   color: colors.primary,
                 }}
-                value={editedData.fullName}
-                onChangeText={(text) => handleTextChange('fullName', text)}
+                defaultValue={profileData.fullName}
+                onChangeText={(text) => { fullNameRef.current = text; }}
                 placeholder="Enter your full name"
               />
             </View>
-            
+
             {/* Email */}
             <View style={{ marginBottom: 16 }}>
               <Text style={{
@@ -195,13 +210,13 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                   fontSize: 16,
                   color: colors.primary,
                 }}
-                value={editedData.emailAddress}
-                onChangeText={(text) => handleTextChange('emailAddress', text)}
+                defaultValue={profileData.emailAddress}
+                onChangeText={(text) => { emailRef.current = text; }}
                 placeholder="Enter your email"
                 keyboardType="email-address"
               />
             </View>
-            
+
             {/* Phone */}
             <View style={{ marginBottom: 16 }}>
               <Text style={{
@@ -221,13 +236,13 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                   fontSize: 16,
                   color: colors.primary,
                 }}
-                value={editedData.phoneNumber}
-                onChangeText={(text) => handleTextChange('phoneNumber', text)}
+                defaultValue={profileData.phoneNumber}
+                onChangeText={(text) => { phoneRef.current = text; }}
                 placeholder="Enter your phone number"
                 keyboardType="phone-pad"
               />
             </View>
-            
+
             {/* Business Name */}
             <View style={{ marginBottom: 16 }}>
               <Text style={{
@@ -247,12 +262,12 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                   fontSize: 16,
                   color: colors.primary,
                 }}
-                value={editedData.businessName}
-                onChangeText={(text) => handleTextChange('businessName', text)}
+                defaultValue={profileData.businessName}
+                onChangeText={(text) => { businessNameRef.current = text; }}
                 placeholder="Enter your business name"
               />
             </View>
-            
+
             {/* Country */}
             <View style={{ marginBottom: 16 }}>
               <Text style={{
@@ -272,7 +287,7 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                 }}
               >
                 <Picker
-                  selectedValue={editedData.country}
+                  selectedValue={locationData.country}
                   onValueChange={handleCountryChange}
                   style={{
                     fontFamily: "Inter_400Regular",
@@ -284,7 +299,7 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                 </Picker>
               </View>
             </View>
-            
+
             {/* State */}
             <View style={{ marginBottom: 16 }}>
               <Text style={{
@@ -304,23 +319,23 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                 }}
               >
                 <Picker
-                  selectedValue={editedData.state}
-                  onValueChange={(value) => handleTextChange('state', value)}
+                  selectedValue={locationData.state}
+                  onValueChange={(value) => setLocationData(prev => ({ ...prev, state: value }))}
                   style={{
                     fontFamily: "Inter_400Regular",
                     fontSize: 16,
                     color: colors.primary,
                   }}
-                  key={editedData.country} // Force re-render when country changes
+                  key={locationData.country} // Force re-render when country changes
                 >
                   {stateItems}
                 </Picker>
               </View>
             </View>
           </ScrollView>
-          
+
           <View style={{ flexDirection: 'row', marginTop: 20 }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{
                 flex: 1,
                 padding: 16,
@@ -339,8 +354,8 @@ const EditProfileModal = React.memo(({ visible, onClose, profileData, onSave, co
                 Cancel
               </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={{
                 flex: 1,
                 padding: 16,
@@ -376,7 +391,7 @@ function Profile() {
   const [profileImage, setProfileImage] = useState(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
-  
+
   // Profile data with defaults as specified
   const [profileData, setProfileData] = useState({
     fullName: "John Smith",
@@ -424,7 +439,7 @@ function Profile() {
 
   const openImagePicker = async () => {
     setShowImagePicker(false);
-    
+
     const { status } = await ImagePickerAPI.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Sorry', 'We need camera roll permissions to make this work!');
@@ -445,7 +460,7 @@ function Profile() {
 
   const openCamera = async () => {
     setShowImagePicker(false);
-    
+
     const { status } = await ImagePickerAPI.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Sorry', 'We need camera permissions to make this work!');
@@ -470,13 +485,13 @@ function Profile() {
       "Are you sure you want to sign out?",
       [
         { text: "Cancel", style: "cancel" },
-        { 
-          text: "Sign Out", 
-          style: "destructive", 
+        {
+          text: "Sign Out",
+          style: "destructive",
           onPress: () => {
             authSignOut(); // Clear the authentication state
             router.push("/login"); // Navigate to login page
-          } 
+          }
         },
       ]
     );
@@ -498,14 +513,14 @@ function Profile() {
     // Update location based on selected country and state
     const countryName = countries.find(c => c.id === updatedData.country)?.name || "Nigeria";
     const stateName = states[updatedData.country]?.find(s => s.id === updatedData.state)?.name || "Lagos";
-    
+
     const updatedProfileData = {
       ...updatedData,
       location: `${stateName}, ${countryName}`
     };
-    
+
     setProfileData(updatedProfileData);
-    
+
     // In a real app, you would save the data to your backend here
     setShowEditProfileModal(false);
   };
@@ -536,7 +551,7 @@ function Profile() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      
+
       {/* Header */}
       <View
         style={{
@@ -645,7 +660,7 @@ function Profile() {
                     </View>
                   </TouchableOpacity>
                 </View>
-                
+
                 <View>
                   <Text
                     style={{
@@ -668,8 +683,8 @@ function Profile() {
                   </Text>
                 </View>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={{
                   backgroundColor: colors.lightGray,
                   paddingHorizontal: 12,
@@ -689,13 +704,13 @@ function Profile() {
                 </Text>
               </TouchableOpacity>
             </View>
-            
+
             {/* Contact Information */}
             <View style={{ marginTop: 20 }}>
-              <View style={{ 
-                flexDirection: "row", 
-                alignItems: "center", 
-                paddingVertical: 8 
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 8
               }}>
                 <Mail size={16} color={colors.secondary} style={{ marginRight: 12, width: 20 }} />
                 <Text
@@ -708,11 +723,11 @@ function Profile() {
                   {profileData.emailAddress}
                 </Text>
               </View>
-              
-              <View style={{ 
-                flexDirection: "row", 
-                alignItems: "center", 
-                paddingVertical: 8 
+
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 8
               }}>
                 <Phone size={16} color={colors.secondary} style={{ marginRight: 12, width: 20 }} />
                 <Text
@@ -725,11 +740,11 @@ function Profile() {
                   {profileData.phoneNumber}
                 </Text>
               </View>
-              
-              <View style={{ 
-                flexDirection: "row", 
-                alignItems: "center", 
-                paddingVertical: 8 
+
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 8
               }}>
                 <MapPin size={16} color={colors.secondary} style={{ marginRight: 12, width: 20 }} />
                 <Text
@@ -1168,9 +1183,9 @@ function Profile() {
             padding: 20,
             paddingBottom: insets.bottom + 20
           }}>
-            <View style={{ 
-              flexDirection: 'row', 
-              justifyContent: 'space-between', 
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               alignItems: 'center',
               marginBottom: 20
             }}>
@@ -1185,8 +1200,8 @@ function Profile() {
                 <X size={24} color={colors.secondary} />
               </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={{
                 padding: 16,
                 backgroundColor: colors.lightGray,
@@ -1206,8 +1221,8 @@ function Profile() {
                 Take Photo
               </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={{
                 padding: 16,
                 backgroundColor: colors.lightGray,
@@ -1232,7 +1247,7 @@ function Profile() {
 
       {/* Edit Profile Modal */}
       {showEditProfileModal && (
-        <EditProfileModal 
+        <EditProfileModal
           visible={showEditProfileModal}
           onClose={closeEditProfileModal}
           profileData={profileData}
